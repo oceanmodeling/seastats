@@ -1,6 +1,6 @@
 # SeaStats
 
-Simple package to compare and anylyse 2 time series. We use the following conventionn in this repo:
+Simple package to compare and analyse 2 time series. We use the following conventionn in this repo:
  * `sim`: modelled surge time series
  * `mod`: observed surge time series
 
@@ -72,3 +72,10 @@ The `storm_metrics()` might return:
 this happens when the function `storms/match_extremes.py` couldn't finc concomitent storms for the observed and modeled time series.
 
 ## Usage
+see notebook fior details
+
+```python
+stats = get_stats(sim, obs)
+metric99 = storm_metrics(sim, obs, quantile=0.99, cluster_duration=72)
+metric95 = storm_metrics(sim, obs, quantile=0.95, cluster_duration=72)
+```
