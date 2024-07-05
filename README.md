@@ -1,12 +1,12 @@
 # SeaStats
 
-Simple package to compare and anylyse 2 time series. We use the following conventionn in this repo: 
+Simple package to compare and anylyse 2 time series. We use the following conventionn in this repo:
  * `sim`: modelled surge time series
  * `mod`: observed surge time series
 
-## Metrics available: 
+## Metrics available:
 
-These are following metrics available in this repository: 
+These are following metrics available in this repository:
 
 We need metrics to assess the quality of the model.
 We define the most important ones, as stated on this [Stats wiki](https://cirpwiki.info/wiki/Statistics):
@@ -33,8 +33,42 @@ with :
 $$\lambda = 1 - \frac{\sum{(x_c - x_m)^2}}{\sum{(x_m - \overline{x}_m)^2} + \sum{(x_c - \overline{x}_c)^2} + n(\overline{x}_m - \overline{x}_c)^2 + \kappa}$$
  * with `kappa` $$2 \cdot \left| \sum{((x_m - \overline{x}_m) \cdot (x_c - \overline{x}_c))} \right|$$
 
-### ADD STORM SELECTION PROCESS
-from methodology explained in this [notebook](https://tomsail.github.io/static/Model_metrics.html)
-### ADD "Slope" parameters
-more info can be found [in this preprint](https://doi.org/10.5194/egusphere-2024-1415) from Campos-Caba et. al.
-"""
+### Storm metrics:
+The metrics are returned by the function
+```python
+storm_metrics(sim: pd.Series, obs: pd.Series, quantile: float, cluster_duration:int = 72)
+```
+which returns this dictionary:
+```
+"db_match" : val,
+"R1_norm": val,
+"R1": val,
+"R3_norm": val,
+"R3": val,
+"error": val,
+"error_metric": val
+```
+we defined the following metrics for the storms events:
+
+* `R1`/`R3`/`error_metric`: we select the biggest observated storms, and then calculate error (so the absolute value of differenc between the model and the observed peaks)
+  * `R1` is the error for the biggest storm
+  * `R3` is the mean error for the 3 biggest storms
+  * `error_metric` is the mean error for all the storms above the threshold.
+
+* `R1_norm`/`R3_norm`/`error`: Same methodology, but values are in normalised (in %) by the observed peaks.
+
+### case of NaNs
+The `storm_metrics()` might return:
+```
+"db_match" : np.nan,
+"R1_norm": np.nan,
+"R1": np.nan,
+"R3_norm": np.nan,
+"R3": np.nan,
+"error": np.nan,
+"error_metric": np.nan
+```
+
+this happens when the function `storms/match_extremes.py` couldn't finc concomitent storms for the observed and modeled time series.
+
+## Usage

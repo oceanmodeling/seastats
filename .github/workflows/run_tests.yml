@@ -1,0 +1,57 @@
+name: test
+
+on:
+  push:
+    branches:
+      - "main"
+      - "master"
+      - "dev"
+    paths:
+      - "**.py"
+      - ".github/workflows/*test*.yml"
+      - "pyproject.toml"
+      - "poetry.lock"
+      - "requirements/requirements*.txt"
+  pull_request:
+    paths:
+      - "**.py"
+      - ".github/workflows/*test*.yml"
+      - "pyproject.toml"
+      - "poetry.lock"
+      - "requirements/requirements*.txt"
+
+jobs:
+  test:
+    name: "test Python ${{ matrix.python }} on ${{ matrix.os }}"
+    runs-on: "${{ matrix.os }}"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ["ubuntu-latest"]
+        python: ["3.9", "3.10", "3.11", "3.12"]
+        include:
+          - os: "macos-latest"
+            python: "3.10"
+    defaults:
+      run:
+        shell: "bash -eo pipefail {0}"
+
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: "actions/setup-python@v2"
+        with:
+          python-version: "${{ matrix.python }}"
+      - uses: "actions/cache@v2"
+        id: "cache"
+        with:
+          path: "${{ env.pythonLocation }}"
+          key: "test-${{ runner.os }}-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml', 'requirements/*') }}"
+      - run: "python --version"
+      - run: "python -mpip install -U pip"
+      - run: "python -mpip --version"
+      - run: "python -mpip install -r requirements/requirements-dev.txt"
+      - run: "python -mpip install ./"
+      - name: "Run tests"
+        run: "pytest tests/"
+        env:
+          PYTHONPATH: ${{ github.workspace }}/tests

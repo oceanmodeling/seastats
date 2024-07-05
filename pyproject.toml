@@ -7,11 +7,17 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-numpy = "*"
+numpy = "<2"
 pandas = "*"
 xarray = "*"
 scipy = "*"
 pyextremes = "*"
+pyarrow = "*"
+hvplot = "*"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "*"
+ipykernel = "*"
 
 [build-system]
 requires = ["poetry-core"]
