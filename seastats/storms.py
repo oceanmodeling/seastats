@@ -1,0 +1,71 @@
+
+import pandas as pd
+import numpy as np
+from pyextremes import get_extremes
+from typing import Dict
+
+def get_extremes_ts(ts1: pd.Series, ts2: pd.Series, quantile: float, cluster_duration:int = 72
+)-> pd.DataFrame:
+    # first ts
+    threshold = ts1.quantile(quantile)
+    ext_ = get_extremes(ts1, "POT", threshold=threshold, r=f"{cluster_duration}h")
+    extremes1 = pd.DataFrame({"modeled" : ext_, "time_model" : ext_.index}, index=ext_.index)
+    # second ts
+    threshold = ts2.quantile(quantile)
+    ext_ = get_extremes(ts2, "POT", threshold=threshold, r=f"{cluster_duration}h")
+    extremes2 = pd.DataFrame({"observed" : ext_, "time_obs" : ext_.index}, index=ext_.index)
+    extremes = pd.concat([extremes1, extremes2], axis=1)
+    if extremes.empty:
+        return pd.DataFrame()
+    else: 
+        extremes = extremes.groupby(pd.Grouper(freq='2D')).mean().dropna(how='all')
+        return extremes
+
+
+def match_extremes(extremes: pd.DataFrame)-> pd.DataFrame:
+    if extremes.empty:
+        return pd.DataFrame()
+    extremes_match = extremes.groupby(pd.Grouper(freq='2D')).mean().dropna()
+    if len(extremes_match) == 0:
+        return pd.DataFrame()
+    else: 
+        extremes_match['difference'] = extremes_match['observed'] - extremes_match['modeled']
+        extremes_match['error'] = np.abs(extremes_match['difference']/extremes_match['observed'])
+        extremes_match['error_m'] = extremes_match["error"] * extremes_match['observed']
+        return extremes_match
+
+
+def storm_metrics(ts1: pd.Series, ts2: pd.Series, quantile: float, cluster_duration:int = 72
+)->Dict[str, float]:
+    extremes = get_extremes_ts(ts1, ts2, quantile, cluster_duration)
+    extremes_match = match_extremes(extremes)
+    if extremes_match.empty:
+        return {
+            "db_match" : np.nan,
+            "R1_norm": np.nan,
+            "R1": np.nan,
+            "R3_norm": np.nan,
+            "R3": np.nan,
+            "error": np.nan,
+            "error_metric": np.nan
+        }
+    else: 
+        # R1: diff for the biggest storm in each dataset
+        idx_max = extremes_match['observed'].idxmax()
+        R1_norm = extremes_match['error'][idx_max]
+        R1 = extremes_match['error_m'][idx_max]
+        # R3: Difference between observed and modelled for the biggest storm
+        idx_max = extremes_match['observed'].nlargest(3).index
+        R3_norm = extremes_match['error'][idx_max].mean()
+        R3 = extremes_match['error_m'][idx_max].mean()
+        metrics = {
+            "db_match" : len(extremes_match)/len(extremes),
+            "R1_norm": R1_norm, 
+            "R1": R1, 
+            "R3_norm": R3_norm, 
+            "R3": R3, 
+            "error": extremes_match['error'].mean(),
+            "error_metric": extremes_match['error_m'].mean()
+        }
+        return metrics
+        

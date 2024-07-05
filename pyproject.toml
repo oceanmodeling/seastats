@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "seastats"
+version = "0.1.0"
+description = "package for metocean statistics"
+authors = ["tomsail <saillour.thomas@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+numpy = "*"
+pandas = "*"
+xarray = "*"
+scipy = "*"
+pyextremes = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
