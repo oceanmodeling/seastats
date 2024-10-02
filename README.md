@@ -4,12 +4,62 @@ Simple package to compare and analyse 2 time series. We use the following conven
  * `sim`: modelled surge time series
  * `mod`: observed surge time series
 
-## Metrics available:
+# Stats Metrics available:
 
-These are following metrics available in this repository:
+```python
+stats = get_stats(sim: pd.Series, obs: pd.Series)
+```
+returns the following dictionary:
 
-We need metrics to assess the quality of the model.
-We define the most important ones, as stated on this [Stats wiki](https://cirpwiki.info/wiki/Statistics):
+```
+{
+  'bias': 0.01,
+  'rmse': 0.105,
+  'rms': 0.106,
+  'rms_95': 0.095,
+  'sim_mean': 0.01,
+  'obs_mean': -0.0,
+  'sim_std': 0.162,
+  'obs_std': 0.142,
+  'nse': 0.862,
+  'lamba': 0.899,
+  'cr': 0.763,
+  'cr_95': 0.489,
+  'slope': 0.215,
+  'intercept': 0.01,
+  'slope_pp': 0.381,
+  'intercept_pp': 0.012,
+  'mad': 0.062,
+  'madp': 0.207,
+  'madc': 0.269,
+  'kge': 0.71
+}
+```
+
+with:
+* `bias`: Bias
+* `rmse`: Root Mean Square Error
+* `rms`: Root Mean Square
+* `rms_95`: Root Mean Square for data points above 95th percentile
+* `sim_mean`: Mean of simulated values
+* `obs_mean`: Mean of observed values
+* `sim_std`: Standard deviation of simulated values
+* `obs_std`: Standard deviation of observed values
+* `nse`: Nash-Sutcliffe Efficiency
+* `lamba`: Lambda index
+* `cr`: Pearson Correlation coefficient
+* `cr_95`: Pearson Correlation coefficient for data points above 95th percentile
+* `slope`: Slope of Model/Obs correlation
+* `intercept`: Intercept of Model/Obs correlation
+* `slope_pp`: Slope of Model/Obs correlation of percentiles
+* `intercept_pp`: Intercept of Model/Obs correlation of percentiles
+* `mad`: Mean Absolute Deviation
+* `madp`: Mean Absolute Deviation of percentiles
+* `madc`: `mad + madp`
+* `kge`: Kling–Gupta Efficiency
+
+Most of the paremeters are detailed below:
+
 ### A. Dimensional Statistics:
 #### Mean Error (or Bias)
 $$\langle x_c - x_m \rangle = \langle x_c \rangle - \langle x_m \rangle$$
@@ -33,12 +83,12 @@ with :
 $$\lambda = 1 - \frac{\sum{(x_c - x_m)^2}}{\sum{(x_m - \overline{x}_m)^2} + \sum{(x_c - \overline{x}_c)^2} + n(\overline{x}_m - \overline{x}_c)^2 + \kappa}$$
  * with `kappa` $$2 \cdot \left| \sum{((x_m - \overline{x}_m) \cdot (x_c - \overline{x}_c))} \right|$$
 
-### Storm metrics:
+# Storm Metrics available:
 The metrics are returned by the function
 ```python
 storm_metrics(sim: pd.Series, obs: pd.Series, quantile: float, cluster_duration:int = 72)
 ```
-which returns this dictionary:
+which uses [pyextremes](https://georgebv.github.io/pyextremes/quickstart/) and returns this dictionary:
 ```
 "db_match" : val,
 "R1_norm": val,
@@ -72,7 +122,7 @@ The `storm_metrics()` might return:
 this happens when the function `storms/match_extremes.py` couldn't finc concomitent storms for the observed and modeled time series.
 
 ## Usage
-see notebook fior details
+see notebook for details:
 
 ```python
 stats = get_stats(sim, obs)
