@@ -175,29 +175,67 @@ def get_slope_intercept_pp(
     return np.round(slope, round), np.round(intercept, round)
 
 
-def get_stats(sim: pd.Series, obs: pd.Series) -> Dict[str, float]:
+def get_stats(
+    sim: pd.Series,  # The simulated time series data.
+    obs: pd.Series,  # The observed time series data.
+    round: int = 3,  # The number of decimal places to round the results to. Default is 3.
+) -> Dict[str, float]:
+    """
+    Calculates various statistical metrics between the simulated and observed time series data.
+
+    Parameters:
+    sim (pd.Series): The simulated time series data.
+    obs (pd.Series): The observed time series data.
+    round (int, optional): The number of decimal places to round the results to. Default is 3.
+
+    Returns:
+    Dict[str, float]: A dictionary containing the calculated statistical metrics.
+
+    The dictionary contains the following keys and their corresponding values:
+
+    - `bias`: The bias between the simulated and observed time series data.
+    - `rmse`: The root mean square error between the simulated and observed time series data.
+    - `rms`: The raw mean square error between the simulated and observed time series data.
+    - `rms_95`: The root mean square error between the simulated and observed time series data at the 95th percentile.
+    - `sim_mean`: The mean of the simulated time series data.
+    - `obs_mean`: The mean of the observed time series data.
+    - `sim_std`: The standard deviation of the simulated time series data.
+    - `obs_std`: The standard deviation of the observed time series data.
+    - `nse`: The Nash-Sutcliffe efficiency between the simulated and observed time series data.
+    - `lamba`: The lambda statistic between the simulated and observed time series data.
+    - `cr`: The correlation coefficient between the simulated and observed time series data.
+    - `cr_95`: The correlation coefficient between the simulated and observed time series data at the 95th percentile.
+    - `slope`: The slope of the linear regression between the simulated and observed time series data.
+    - `intercept`: The intercept of the linear regression between the simulated and observed time series data.
+    - `slope_pp`: The slope of the linear regression between the percentiles of the simulated and observed time series data.
+    - `intercept_pp`: The intercept of the linear regression between the percentiles of the simulated and observed time series data.
+    - `mad`: The median absolute deviation of the simulated time series data from its median.
+    - `madp`: The median absolute deviation of the simulated time series data from its median, calculated using the percentiles of the observed time series data.
+    - `madc`: The median absolute deviation of the simulated time series data from its median, calculated by adding `mad` to `madp`
+    - `kge`: The Kling-Gupta efficiency between the simulated and observed time series data.
+    """
     slope, intercept = get_slope_intercept(sim, obs)
     slopepp, interceptpp = get_slope_intercept_pp(sim, obs)
     version_stat = {
-        "bias": get_bias(sim, obs),
-        "rmse": get_rmse(sim, obs),
-        "rms": get_rms(sim, obs),
-        "rms_95": get_rms_quantile(sim, obs),
-        "sim_mean": np.round(sim.mean(), 3),
-        "obs_mean": np.round(obs.mean(), 3),
-        "sim_std": np.round(sim.std(), 3),
-        "obs_std": np.round(obs.std(), 3),
-        "nse": get_nse(sim, obs),
-        "lamba": get_lambda(sim, obs),
-        "cr": get_corr(sim, obs),
-        "cr_95": get_corr_quantile(sim, obs),
+        "bias": get_bias(sim, obs, round),
+        "rmse": get_rmse(sim, obs, round),
+        "rms": get_rms(sim, obs, round),
+        "rms_95": get_rms_quantile(sim, obs, 0.95, round),
+        "sim_mean": np.round(sim.mean(), round),
+        "obs_mean": np.round(obs.mean(), round),
+        "sim_std": np.round(sim.std(), round),
+        "obs_std": np.round(obs.std(), round),
+        "nse": get_nse(sim, obs, round),
+        "lamba": get_lambda(sim, obs, round),
+        "cr": get_corr(sim, obs, round),
+        "cr_95": get_corr_quantile(sim, obs, 0.95, round),
         "slope": slope,
         "intercept": intercept,
         "slope_pp": slopepp,
         "intercept_pp": interceptpp,
-        "mad": get_mad(sim, obs),
-        "madp": get_madp(sim, obs),
-        "madc": get_madc(sim, obs),
-        "kge": get_kge(sim, obs),
+        "mad": get_mad(sim, obs, round),
+        "madp": get_madp(sim, obs, round),
+        "madc": get_madc(sim, obs, round),
+        "kge": get_kge(sim, obs, round),
     }
     return version_stat
