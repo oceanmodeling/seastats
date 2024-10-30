@@ -1,10 +1,15 @@
 # SeaStats
 
-Simple package to compare and analyse 2 time series. We use the following conventionn in this repo:
+`seastats` is a simple package to compare and analyse 2 time series. We use the following convention in this repo:
  * `sim`: modelled surge time series
  * `mod`: observed surge time series
 
-# Stats Metrics available:
+The main functions are:
+* `get_stats()`: to get [general comparison metrics](#general-metrics) between two time series
+* `match_extremes()`: a PoT selection is done on the observed signal. Function returns the decreasing extreme event peak values for observed and modeled signals (and time lag between events).
+* `storm_metrics()`: functions returns storm metrics (detailed [below](#storm-metrics-available))
+
+# General metrics
 
 ```python
 stats = get_stats(sim: pd.Series, obs: pd.Series)
@@ -83,40 +88,61 @@ with :
 $$\lambda = 1 - \frac{\sum{(x_c - x_m)^2}}{\sum{(x_m - \overline{x}_m)^2} + \sum{(x_c - \overline{x}_c)^2} + n(\overline{x}_m - \overline{x}_c)^2 + \kappa}$$
  * with `kappa` $$2 \cdot \left| \sum{((x_m - \overline{x}_m) \cdot (x_c - \overline{x}_c))} \right|$$
 
-# Storm Metrics available:
-The metrics are returned by the function
+# Extreme events
+
+Example of implementation:
 ```python
+from seastats.storms import match_extremes
+extremes_df = match_extremes(sim, obs, 0.99, cluster = 72)
+extremes_df
+```
+The modeled peaks are matched with the observed peaks. Function returns a pd.DataFrame of the decreasing observed storm peaks as follows:
+
+| time observed       |   observed | time observed       |    model | time model          |       diff |     error |   error_norm |   tdiff |
+|:--------------------|-----------:|:--------------------|---------:|:--------------------|-----------:|----------:|-------------:|--------:|
+| 2022-01-29 19:30:00 |   0.803 | 2022-01-29 19:30:00 | 0.565 | 2022-01-29 17:00:00 | -0.237  | 0.237  |    0.296  |    -2.5 |
+| 2022-02-20 20:30:00 |   0.639 | 2022-02-20 20:30:00 | 0.577 | 2022-02-20 20:00:00 | -0.062 | 0.062 |    0.0963 |    -0.5 |
+...
+| 2022-11-27 15:30:00 |   0.386  | 2022-11-27 15:30:00 | 0.400 | 2022-11-27 17:00:00 |  0.014 | 0.014 |    0.036 |     1.5 |
+
+with:
+ * `diff` the difference between modeled and observed peaks
+ * `error` the absolute difference between modeled and observed peaks
+ * `tdiff` the time difference between modeled and observed peaks
+
+NB: the function uses [pyextremes](https://georgebv.github.io/pyextremes/quickstart/) in the background, with PoT method, using the `quantile` value of the observed signal as physical threshold and passes the `cluster_duration` argument.
+
+# Storm metrics
+The functions uses the above `match_extremes()` and returns:
+ * `R1`: the error for the biggest storm
+ * `R3`: the mean error for the 3 biggest storms
+ * `error`: the mean error for all the storms above the threshold.
+ * `R1_norm`/`R3_norm`/`error`: Same methodology, but values are in normalised (in %) relatively to the observed peaks.
+
+Example of implementation:
+```python
+from seastats.storms import storm_metrics
 storm_metrics(sim: pd.Series, obs: pd.Series, quantile: float, cluster_duration:int = 72)
 ```
-which uses [pyextremes](https://georgebv.github.io/pyextremes/quickstart/) and returns this dictionary:
+returns this dictionary:
+```python
+{'R1': 0.237,
+ 'R1_norm': 0.296,
+ 'R3': 0.147,
+ 'R3_norm': 0.207,
+ 'error': 0.0938,
+ 'error_norm': 0.178}
 ```
-"db_match" : val,
-"R1_norm": val,
-"R1": val,
-"R3_norm": val,
-"R3": val,
-"error": val,
-"error_metric": val
-```
-we defined the following metrics for the storms events:
-
-* `R1`/`R3`/`error_metric`: we select the biggest observated storms, and then calculate error (so the absolute value of differenc between the model and the observed peaks)
-  * `R1` is the error for the biggest storm
-  * `R3` is the mean error for the 3 biggest storms
-  * `error_metric` is the mean error for all the storms above the threshold.
-
-* `R1_norm`/`R3_norm`/`error`: Same methodology, but values are in normalised (in %) by the observed peaks.
 
 ### case of NaNs
 The `storm_metrics()` might return:
-```
-"db_match" : np.nan,
-"R1_norm": np.nan,
-"R1": np.nan,
-"R3_norm": np.nan,
-"R3": np.nan,
-"error": np.nan,
-"error_metric": np.nan
+```python
+{'R1': np.nan,
+ 'R1_norm': np.nan,
+ 'R3': np.nan,
+ 'R3_norm': np.nan,
+ 'error': np.nan,
+ 'error_norm': np.nan}
 ```
 
 this happens when the function `storms/match_extremes.py` couldn't finc concomitent storms for the observed and modeled time series.
@@ -124,8 +150,13 @@ this happens when the function `storms/match_extremes.py` couldn't finc concomit
 ## Usage
 see notebook for details:
 
+get all metrics in a 3 liner:
 ```python
 stats = get_stats(sim, obs)
-metric99 = storm_metrics(sim, obs, quantile=0.99, cluster_duration=72)
-metric95 = storm_metrics(sim, obs, quantile=0.95, cluster_duration=72)
+metrics = storm_metrics(sim, obs, quantile=0.99, cluster=72)
+pd.DataFrame(dict(stats, **metrics), index=['abed'])
 ```
+
+|      |   bias |   rmse |   rms |   rms_95 |   sim_mean |   obs_mean |   sim_std |   obs_std |   nse |   lamba |    cr |   cr_95 |   slope |   intercept |   slope_pp |   intercept_pp |   mad |   madp |   madc |   kge |       R1 |   R1_norm |       R3 |   R3_norm |     error |   error_norm |
+|:-----|-------:|-------:|------:|---------:|-----------:|-----------:|----------:|----------:|------:|--------:|------:|--------:|--------:|------------:|-----------:|---------------:|------:|-------:|-------:|------:|---------:|----------:|---------:|----------:|----------:|-------------:|
+| abed | -0.007 |  0.086 | 0.086 |    0.088 |         -0 |      0.007 |     0.142 |     0.144 | 0.677 |   0.929 | 0.817 |   0.542 |   0.718 |      -0.005 |      1.401 |         -0.028 | 0.052 |  0.213 |  0.265 |  0.81 | 0.237364 |  0.295719 | 0.147163 |  0.207019 | 0.0938142 |     0.177533 |
