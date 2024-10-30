@@ -6,8 +6,8 @@
 
 The main functions are:
 * `get_stats()`: to get [general comparison metrics](#general-metrics) between two time series
-* `match_extremes()`: a PoT selection is done on the observed signal. Function returns the decreasing extreme event peak values for observed and modeled signals (and time lag between events).
-* `storm_metrics()`: functions returns storm metrics (detailed [below](#storm-metrics-available))
+* `match_extremes()`: a PoT selection is done on the observed signal. Function returns the decreasing extreme event peak values for observed and modeled signals (and time lag between events). See details [below](#extreme-events)
+* `storm_metrics()`: functions returns storm metrics. See details [below](#storm-metrics)
 
 # General metrics
 
@@ -148,7 +148,7 @@ The `storm_metrics()` might return:
 this happens when the function `storms/match_extremes.py` couldn't finc concomitent storms for the observed and modeled time series.
 
 ## Usage
-see notebook for details:
+see [notebook](/notebooks/example_abed.ipynb) for details
 
 get all metrics in a 3 liner:
 ```python
