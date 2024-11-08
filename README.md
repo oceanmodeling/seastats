@@ -4,67 +4,60 @@
  * `sim`: modelled surge time series
  * `mod`: observed surge time series
 
-The main functions are:
-* `get_stats()`: to get [general comparison metrics](#general-metrics) between two time series
-* `match_extremes()`: a PoT selection is done on the observed signal. Function returns the decreasing extreme event peak values for observed and modeled signals (and time lag between events). See details [below](#extreme-events)
-* `storm_metrics()`: functions returns storm metrics. See details [below](#storm-metrics)
-
-# General metrics
+The main function is:
 
 ```python
-stats = get_stats(sim: pd.Series, obs: pd.Series)
+def get_stats(
+    sim: Series,
+    obs: Series,
+    metrics: Sequence[str] = SUGGESTED_METRICS,
+    quantile: float = 0,
+    cluster: int = 72,
+    round: int = -1
+) -> dict[str, float]
 ```
-returns the following dictionary:
+Calculates various statistical metrics between the simulated and observed time series data.
+## Parameters:
+ * **sim** (pd.Series). The simulated time series data.
+ * **obs** (pd.Series). The observed time series data.
+ * **metrics** (list[str]). (Optional) The list of statistical metrics to calculate. If metrics = ["all"], all items in `SUPPORTED_METRICS` will be calculated. Default is all items in `SUGGESTED_METRICS`.
+ * **quantile** (float). (Optional) Quantile used to calculate the metrics. Default is `0` (no selection)
+ * **cluster** (int). (Optional) Cluster duration for grouping storm events. Default is `72` hours.
+ * **round** (int). (Optional) Apply rounding to the results to. Default is no rounding (value is `-1`)
 
-```
-{
-  'bias': 0.01,
-  'rmse': 0.105,
-  'rms': 0.106,
-  'rms_95': 0.095,
-  'sim_mean': 0.01,
-  'obs_mean': -0.0,
-  'sim_std': 0.162,
-  'obs_std': 0.142,
-  'nse': 0.862,
-  'lamba': 0.899,
-  'cr': 0.763,
-  'cr_95': 0.489,
-  'slope': 0.215,
-  'intercept': 0.01,
-  'slope_pp': 0.381,
-  'intercept_pp': 0.012,
-  'mad': 0.062,
-  'madp': 0.207,
-  'madc': 0.269,
-  'kge': 0.71
-}
-```
+Returns a dictionary containing the calculated metrics and their corresponding values. With 2 types of metrics:
+* [The "general" metrics](#general-metrics): All the basic metrics needed for signal comparison (RMSE, RMS, Correlation etc..). See details below
+  * `bias`: Bias
+  * `rmse`: Root Mean Square Error
+  * `rms`: Root Mean Square
+  * `rms_95`: Root Mean Square for data points above 95th percentile
+  * `sim_mean`: Mean of simulated values
+  * `obs_mean`: Mean of observed values
+  * `sim_std`: Standard deviation of simulated values
+  * `obs_std`: Standard deviation of observed values
+  * `mae`: Mean Absolute Error
+  * `mse`: Mean Square Error
+  * `nse`: Nash-Sutcliffe Efficiency
+  * `lamba`: Lambda index
+  * `cr`: Pearson Correlation coefficient
+  * `cr_95`: Pearson Correlation coefficient for data points above 95th percentile
+  * `slope`: Slope of Model/Obs correlation
+  * `intercept`: Intercept of Model/Obs correlation
+  * `slope_pp`: Slope of Model/Obs correlation of percentiles
+  * `intercept_pp`: Intercept of Model/Obs correlation of percentiles
+  * `mad`: Mean Absolute Deviation
+  * `madp`: Mean Absolute Deviation of percentiles
+  * `madc`: `mad + madp`
+  * `kge`: Kling–Gupta Efficiency
+* [The storm metrics](#storm-metrics): a PoT selection is done on the observed signal (using the `match_extremes()` function). Function returns the decreasing extreme event peak values for observed and modeled signals (and time lag between events). See details below.
+  * `R1`: Difference between observed and modelled for the biggest storm
+  * `R1_norm`: Normalized R1 (R1 divided by observed value)
+  * `R3`: Average difference between observed and modelled for the three biggest storms
+  * `R3_norm`: Normalized R3 (R3 divided by observed value)
+  * `error`: Average difference between observed and modelled for all storms
+  * `error_norm`: Normalized error (error divided by observed value)
 
-with:
-* `bias`: Bias
-* `rmse`: Root Mean Square Error
-* `rms`: Root Mean Square
-* `rms_95`: Root Mean Square for data points above 95th percentile
-* `sim_mean`: Mean of simulated values
-* `obs_mean`: Mean of observed values
-* `sim_std`: Standard deviation of simulated values
-* `obs_std`: Standard deviation of observed values
-* `nse`: Nash-Sutcliffe Efficiency
-* `lamba`: Lambda index
-* `cr`: Pearson Correlation coefficient
-* `cr_95`: Pearson Correlation coefficient for data points above 95th percentile
-* `slope`: Slope of Model/Obs correlation
-* `intercept`: Intercept of Model/Obs correlation
-* `slope_pp`: Slope of Model/Obs correlation of percentiles
-* `intercept_pp`: Intercept of Model/Obs correlation of percentiles
-* `mad`: Mean Absolute Deviation
-* `madp`: Mean Absolute Deviation of percentiles
-* `madc`: `mad + madp`
-* `kge`: Kling–Gupta Efficiency
-
-Most of the paremeters are detailed below:
-
+## General metrics
 ### A. Dimensional Statistics:
 #### Mean Error (or Bias)
 $$\langle x_c - x_m \rangle = \langle x_c \rangle - \langle x_m \rangle$$
@@ -88,7 +81,25 @@ with :
 $$\lambda = 1 - \frac{\sum{(x_c - x_m)^2}}{\sum{(x_m - \overline{x}_m)^2} + \sum{(x_c - \overline{x}_c)^2} + n(\overline{x}_m - \overline{x}_c)^2 + \kappa}$$
  * with `kappa` $$2 \cdot \left| \sum{((x_m - \overline{x}_m) \cdot (x_c - \overline{x}_c))} \right|$$
 
-# Extreme events
+## Storm metrics
+The functions uses the `match_extremes()` function (detailed below) and returns:
+ * `R1`: the error for the biggest storm
+ * `R3`: the mean error for the 3 biggest storms
+ * `error`: the mean error for all the storms above the threshold.
+ * `R1_norm`/`R3_norm`/`error`: Same methodology, but values are in normalised (in %) relatively to the observed peaks.
+
+
+### case of NaNs
+The `storm_metrics()` might return:
+```python
+{'R1': np.nan,
+ 'R1_norm': np.nan,
+ 'R3': np.nan,
+ 'R3_norm': np.nan,
+ 'error': np.nan,
+ 'error_norm': np.nan}
+```
+## Extreme events
 
 Example of implementation:
 ```python
@@ -112,38 +123,6 @@ with:
 
 NB: the function uses [pyextremes](https://georgebv.github.io/pyextremes/quickstart/) in the background, with PoT method, using the `quantile` value of the observed signal as physical threshold and passes the `cluster_duration` argument.
 
-# Storm metrics
-The functions uses the above `match_extremes()` and returns:
- * `R1`: the error for the biggest storm
- * `R3`: the mean error for the 3 biggest storms
- * `error`: the mean error for all the storms above the threshold.
- * `R1_norm`/`R3_norm`/`error`: Same methodology, but values are in normalised (in %) relatively to the observed peaks.
-
-Example of implementation:
-```python
-from seastats.storms import storm_metrics
-storm_metrics(sim: pd.Series, obs: pd.Series, quantile: float, cluster_duration:int = 72)
-```
-returns this dictionary:
-```python
-{'R1': 0.237,
- 'R1_norm': 0.296,
- 'R3': 0.147,
- 'R3_norm': 0.207,
- 'error': 0.0938,
- 'error_norm': 0.178}
-```
-
-### case of NaNs
-The `storm_metrics()` might return:
-```python
-{'R1': np.nan,
- 'R1_norm': np.nan,
- 'R3': np.nan,
- 'R3_norm': np.nan,
- 'error': np.nan,
- 'error_norm': np.nan}
-```
 
 this happens when the function `storms/match_extremes.py` couldn't finc concomitent storms for the observed and modeled time series.
 
@@ -152,9 +131,10 @@ see [notebook](/notebooks/example_abed.ipynb) for details
 
 get all metrics in a 3 liner:
 ```python
-stats = get_stats(sim, obs)
-metrics = storm_metrics(sim, obs, quantile=0.99, cluster=72)
-pd.DataFrame(dict(stats, **metrics), index=['abed'])
+from seastats import get_stats, GENERAL_METRICS_ALL, STORM_METRICS_ALL
+general = get_stats(sim, obs, metrics = GENERAL_METRICS)
+storm = get_stats(sim, obs, quantile = 0.99, metrics = STORM_METRICS) # we use a different quantile for PoT selection
+pd.DataFrame(dict(general, **storm), index=['abed'])
 ```
 
 |      |   bias |   rmse |   rms |   rms_95 |   sim_mean |   obs_mean |   sim_std |   obs_std |   nse |   lamba |    cr |   cr_95 |   slope |   intercept |   slope_pp |   intercept_pp |   mad |   madp |   madc |   kge |       R1 |   R1_norm |       R3 |   R3_norm |     error |   error_norm |
