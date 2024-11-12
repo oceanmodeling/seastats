@@ -50,7 +50,7 @@ GENERAL_METRICS_ALL = [
 ]
 GENERAL_METRICS = ["bias", "rms", "rmse", "cr", "nse", "kge"]
 STORM_METRICS = ["R1", "R3", "error"]
-STORM_METRICS_ALL = ["R1", "R1_norm", "R3", "R3_norm", "error" "error_norm"]
+STORM_METRICS_ALL = ["R1", "R1_norm", "R3", "R3_norm", "error", "error_norm"]
 
 SUGGESTED_METRICS = sorted(GENERAL_METRICS + STORM_METRICS)
 SUPPORTED_METRICS = sorted(GENERAL_METRICS_ALL + STORM_METRICS_ALL)
