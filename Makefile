@@ -12,7 +12,7 @@ lint:
 	pre-commit run ruff -a
 
 mypy:
-	dmypy run skill-panel
+	dmypy run seastats
 
 deps:
 	pre-commit run poetry-lock -a

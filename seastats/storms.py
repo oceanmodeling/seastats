@@ -1,35 +1,6 @@
-from typing import Dict
-
 import numpy as np
 import pandas as pd
 from pyextremes import get_extremes
-
-
-def get_extremes_ts(
-    sim: pd.Series, obs: pd.Series, quantile: float, cluster_duration: int = 72
-) -> pd.DataFrame:
-    # first ts
-    threshold = sim.quantile(quantile)
-    ext_ = get_extremes(sim, "POT", threshold=threshold, r=f"{cluster_duration}h")
-    extremes1 = pd.DataFrame(
-        {"modeled": ext_, "time_model": ext_.index}, index=ext_.index
-    )
-    # second ts
-    threshold = obs.quantile(quantile)
-    ext_ = get_extremes(obs, "POT", threshold=threshold, r=f"{cluster_duration}h")
-    extremes2 = pd.DataFrame(
-        {"observed": ext_, "time_obs": ext_.index}, index=ext_.index
-    )
-    extremes = pd.concat([extremes1, extremes2], axis=1)
-    if extremes.empty:
-        return pd.DataFrame()
-    else:
-        extremes = (
-            extremes.groupby(pd.Grouper(freq=f"{cluster_duration//2}h"))
-            .mean()
-            .dropna(how="all")
-        )
-        return extremes
 
 
 def match_extremes(
@@ -94,44 +65,3 @@ def match_extremes(
     df["tdiff"] = df["time model"] - df["time observed"]
     df["tdiff"] = df["tdiff"].apply(lambda x: x.total_seconds() / 3600)
     return df
-
-
-def storm_metrics(
-    sim: pd.Series, obs: pd.Series, quantile: float, cluster: int = 72
-) -> Dict[str, float]:
-    """
-    Calculate metrics for comparing simulated and observed storm events
-    Parameters:
-    - sim (pd.Series): Simulated storm series
-    - obs (pd.Series): Observed storm series
-    - quantile (float): Quantile value for defining extreme events
-    - cluster (int, optional): Cluster duration for grouping storm events. Default is 72 hours
-
-    Returns:
-    - Dict[str, float]: Dictionary containing calculated metrics:
-        - R1: Difference between observed and modelled for the biggest storm
-        - R1_norm: Normalized R1 (R1 divided by observed value)
-        - R3: Average difference between observed and modelled for the three biggest storms
-        - R3_norm: Normalized R3 (R3 divided by observed value)
-        - error: Average difference between observed and modelled for all storms
-        - error_norm: Normalized error (error divided by observed value)
-    """
-    df = match_extremes(sim, obs, quantile=quantile, cluster=cluster)
-
-    # calculate R1, R3 and error
-    R1 = df["error"].iloc[0]
-    R1n = df["error_norm"].iloc[0]
-    R3 = df["error"].iloc[0:3].mean()
-    R3n = df["error_norm"].iloc[0:3].mean()
-    ERROR = df["error"].mean()
-    ERRORn = df["error_norm"].mean()
-    # R3: Difference between observed and modelled for the biggest storm
-    metrics = {
-        "R1": R1,
-        "R1_norm": R1n,
-        "R3": R3,
-        "R3_norm": R3n,
-        "error": ERROR,
-        "error_norm": ERRORn,
-    }
-    return metrics

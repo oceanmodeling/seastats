@@ -28,7 +28,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ["ubuntu-latest"]
-        python: ["3.9", "3.10", "3.11", "3.12"]
+        python: ["3.10", "3.11", "3.12", "3.13"]
         include:
           - os: "macos-latest"
             python: "3.10"
@@ -51,7 +51,8 @@ jobs:
       - run: "python -mpip --version"
       - run: "python -mpip install -r requirements/requirements-dev.txt"
       - run: "python -mpip install ./"
+      - run: "mypy seastats"
       - name: "Run tests"
-        run: "pytest tests/"
+        run: "pytest tests/ --durations=0 -vv"
         env:
           PYTHONPATH: ${{ github.workspace }}/tests

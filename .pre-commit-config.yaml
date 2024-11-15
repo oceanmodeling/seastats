@@ -89,3 +89,11 @@ repos:
             "-o",
             "requirements/requirements-dev.txt",
           ]
+
+  - repo: "local"
+    hooks:
+      - id: "mypy"
+        name: "mypy"
+        entry: "make mypy"
+        language: "system"
+        types: ["python"]
