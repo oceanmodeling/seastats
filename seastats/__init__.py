@@ -27,14 +27,14 @@ logger = logging.getLogger(__name__)
 GENERAL_METRICS_ALL = [
     "bias",
     "rmse",
+    "mae",
+    "mse",
     "rms",
     "rms_qm",
     "sim_mean",
     "obs_mean",
     "sim_std",
     "obs_std",
-    "mae",
-    "mse",
     "nse",
     "lamba",
     "cr",
@@ -105,17 +105,14 @@ def get_stats(
     - `error`: Average difference between observed and modelled for all storms
     - `error_norm`: Normalized error (error divided by observed value)
     """
-
     if not isinstance(metrics, list):
         raise ValueError("metrics must be a list")
 
     if metrics == ["all"]:
         metrics = SUPPORTED_METRICS
 
-    if not np.any([m in SUPPORTED_METRICS + ["all"] for m in metrics]):
-        raise ValueError(
-            "metrics must be a list of supported variables in SUPPORTED_METRICS or ['all']"
-        )
+    if not np.any([m in SUPPORTED_METRICS for m in metrics]):
+        raise ValueError("metrics must be a list of supported variables in SUPPORTED_METRICS or ['all']")
 
     # Storm metrics part with PoT Selection
     if np.any([m in STORM_METRICS_ALL for m in metrics]):
