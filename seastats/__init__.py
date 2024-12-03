@@ -27,18 +27,16 @@ logger = logging.getLogger(__name__)
 GENERAL_METRICS_ALL = [
     "bias",
     "rmse",
+    "mae",
+    "mse",
     "rms",
-    "rms_qm",
     "sim_mean",
     "obs_mean",
     "sim_std",
     "obs_std",
-    "mae",
-    "mse",
     "nse",
     "lamba",
     "cr",
-    "cr_qm",
     "slope",
     "intercept",
     "slope_pp",
@@ -57,12 +55,12 @@ SUPPORTED_METRICS = sorted(GENERAL_METRICS_ALL + STORM_METRICS_ALL)
 
 
 def get_stats(
-    sim: pd.Series,
-    obs: pd.Series,
+    sim: pd.Series[float],
+    obs: pd.Series[float],
     metrics: Sequence[str] = SUGGESTED_METRICS,
     quantile: float = 0,
     cluster: int = 72,
-    round: int = -1,
+    round: int = -1,  # noqa: A002
 ) -> dict[str, float]:
     """
     Calculates various statistical metrics between the simulated and observed time series data.
@@ -105,21 +103,20 @@ def get_stats(
     - `error`: Average difference between observed and modelled for all storms
     - `error_norm`: Normalized error (error divided by observed value)
     """
-
     if not isinstance(metrics, list):
         raise ValueError("metrics must be a list")
 
     if metrics == ["all"]:
         metrics = SUPPORTED_METRICS
 
-    if not np.any([m in SUPPORTED_METRICS + ["all"] for m in metrics]):
-        raise ValueError(
-            "metrics must be a list of supported variables in SUPPORTED_METRICS or ['all']"
-        )
+    if not np.any([m in SUPPORTED_METRICS for m in metrics]):
+        raise ValueError("metrics must be a list of supported variables in SUPPORTED_METRICS or ['all']")
 
     # Storm metrics part with PoT Selection
     if np.any([m in STORM_METRICS_ALL for m in metrics]):
         extreme_df = match_extremes(sim, obs, quantile=quantile, cluster=cluster)
+    else:
+        extreme_df = pd.DataFrame()  # Just to make mypy happy
 
     if quantile:  # signal subsetting is only to be done on general metrics
         sim = sim[sim > sim.quantile(quantile)]
