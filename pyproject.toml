@@ -31,10 +31,12 @@ pandas = {version = "*", extras = ["pyarrow", "performance"]}
 pyextremes = "*"
 
 [tool.poetry.group.dev.dependencies]
+covdefaults = "*"
 hvplot = "*"
 ipykernel = "*"
 mypy = "*"
 pytest = "*"
+pytest-cov = "*"
 
 [build-system]
 requires = ["poetry-core"]
@@ -52,3 +54,13 @@ warn_unreachable = true
 warn_unused_ignores = true
 strict = true
 ignore_missing_imports = true
+
+[tool.coverage.run]
+plugins = ["covdefaults"]
+source = ["seastats"]
+omit = []
+parallel = true
+sigterm = true
+
+[tool.coverage.report]
+fail_under = 86.8
