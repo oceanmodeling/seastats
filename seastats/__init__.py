@@ -186,6 +186,6 @@ def get_stats(
 
     if round > 0:
         for metric in metrics:
-            stats[metric] = np.round(stats[metric])
+            stats[metric] = np.round(stats[metric], round)
 
     return stats
