@@ -54,5 +54,3 @@ jobs:
       - run: "mypy seastats"
       - name: "Run tests"
         run: "pytest tests/ --durations=0 -vv"
-        env:
-          PYTHONPATH: ${{ github.workspace }}/tests
