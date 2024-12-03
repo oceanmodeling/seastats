@@ -60,6 +60,7 @@ EXPECTED_099 = {
     "slope_pp": 0.626,
 }
 
+
 @pytest.fixture(scope="session")
 def sim():
     sim = pd.read_parquet("tests/data/abed_sim.parquet")
@@ -83,8 +84,8 @@ def obs():
         pytest.param(dict(quantile=0.99, expected=EXPECTED_099, metrics=seastats.STORM_METRICS_ALL), id="storm_all"),
         pytest.param(dict(quantile=0.99, expected=EXPECTED_099, metrics=seastats.SUGGESTED_METRICS), id="suggested"),
         pytest.param(dict(quantile=0.99, expected=EXPECTED_099, metrics=seastats.SUPPORTED_METRICS), id="supported"),
-    ]
-)
+    ],
+)  # fmt: skip
 def test_get_stats(sim, obs, args):
     expected_results = args.pop("expected")
     stats = seastats.get_stats(sim, obs, **args)
@@ -110,5 +111,3 @@ def test_get_stats_ensure_that_all_returns_supported_metrics(sim, obs):
     all_results = seastats.get_stats(sim, obs, metrics=["all"])
     supported_results = seastats.get_stats(sim, obs, metrics=seastats.SUPPORTED_METRICS)
     assert all_results == supported_results
-
-

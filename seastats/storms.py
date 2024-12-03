@@ -48,11 +48,7 @@ def match_extremes(
     tmax_in_window = []
     # match simulated values with observed events
     for it, itime in enumerate(ext.index):
-        snippet = sim[
-            itime
-            - pd.Timedelta(hours=cluster / 2) : itime
-            + pd.Timedelta(hours=cluster / 2)
-        ]
+        snippet = sim[itime - pd.Timedelta(hours=cluster / 2) : itime + pd.Timedelta(hours=cluster / 2)]
         try:
             tmax_in_window.append(snippet.index[int(snippet.argmax())])
             max_in_window.append(snippet.max())

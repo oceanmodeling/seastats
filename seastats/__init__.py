@@ -60,7 +60,7 @@ def get_stats(
     metrics: Sequence[str] = SUGGESTED_METRICS,
     quantile: float = 0,
     cluster: int = 72,
-    round: int = -1,
+    round: int = -1,  # noqa: A002
 ) -> dict[str, float]:
     """
     Calculates various statistical metrics between the simulated and observed time series data.

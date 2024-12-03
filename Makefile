@@ -8,7 +8,7 @@ init:
 	pre-commit install
 
 style:
-	pre-commit run black -a
+	pre-commit run ruff-format -a
 
 lint:
 	pre-commit run ruff -a
@@ -27,4 +27,3 @@ cov:
 		--durations=10 \
 		--cov=seastats \
 		--cov-report term-missing
-
