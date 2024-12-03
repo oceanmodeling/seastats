@@ -1,10 +1,17 @@
+from __future__ import annotations
+
+import typing as T
+
 import numpy as np
 import pandas as pd
 from pyextremes import get_extremes
 
 
 def match_extremes(
-    sim: pd.Series, obs: pd.Series, quantile: float, cluster: int = 72
+    sim: pd.Series[float],
+    obs: pd.Series[float],
+    quantile: float,
+    cluster: int = 72,
 ) -> pd.DataFrame:
     """
     Calculate metrics for comparing simulated and observed storm events.
@@ -33,9 +40,9 @@ def match_extremes(
     obs = obs.resample("1h").mean().shift(freq="30min")
     # get observed extremes
     ext = get_extremes(obs, "POT", threshold=obs.quantile(quantile), r=f"{cluster}h")
-    ext_values_dict = {}
+    ext_values_dict: dict[str, T.Any] = {}
     ext_values_dict["observed"] = ext.values
-    ext_values_dict["time observed"] = ext.index
+    ext_values_dict["time observed"] = ext.index.values
     #
     max_in_window = []
     tmax_in_window = []
@@ -47,7 +54,7 @@ def match_extremes(
             + pd.Timedelta(hours=cluster / 2)
         ]
         try:
-            tmax_in_window.append(snippet.index[snippet.argmax()])
+            tmax_in_window.append(snippet.index[int(snippet.argmax())])
             max_in_window.append(snippet.max())
         except Exception:
             tmax_in_window.append(itime)
@@ -56,7 +63,6 @@ def match_extremes(
     ext_values_dict["time model"] = tmax_in_window
     #
     df = pd.DataFrame(ext_values_dict)
-    df.index = df["time observed"]
     df = df.dropna(subset="model")
     df = df.sort_values("observed", ascending=False)
     df["diff"] = df["model"] - df["observed"]
@@ -64,4 +70,5 @@ def match_extremes(
     df["error_norm"] = abs(df["diff"] / df["observed"])
     df["tdiff"] = df["time model"] - df["time observed"]
     df["tdiff"] = df["tdiff"].apply(lambda x: x.total_seconds() / 3600)
+    df = df.set_index("time observed")
     return df

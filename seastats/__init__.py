@@ -55,8 +55,8 @@ SUPPORTED_METRICS = sorted(GENERAL_METRICS_ALL + STORM_METRICS_ALL)
 
 
 def get_stats(
-    sim: pd.Series,
-    obs: pd.Series,
+    sim: pd.Series[float],
+    obs: pd.Series[float],
     metrics: Sequence[str] = SUGGESTED_METRICS,
     quantile: float = 0,
     cluster: int = 72,
@@ -115,6 +115,8 @@ def get_stats(
     # Storm metrics part with PoT Selection
     if np.any([m in STORM_METRICS_ALL for m in metrics]):
         extreme_df = match_extremes(sim, obs, quantile=quantile, cluster=cluster)
+    else:
+        extreme_df = pd.DataFrame()  # Just to make mypy happy
 
     if quantile:  # signal subsetting is only to be done on general metrics
         sim = sim[sim > sim.quantile(quantile)]
