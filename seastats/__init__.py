@@ -123,7 +123,6 @@ def get_stats(
         obs = obs[obs > obs.quantile(quantile)]
 
     stats = {}
-
     for metric in metrics:
         match metric:
             case "bias":
@@ -178,8 +177,6 @@ def get_stats(
                 stats["error"] = extreme_df["error"].mean()
             case "error_norm":
                 stats["error_norm"] = extreme_df["error_norm"].mean()
-    else:
-        logger.info("no storm metric specified")
 
     if round > 0:
         for metric in metrics:
