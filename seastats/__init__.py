@@ -22,6 +22,31 @@ from seastats.stats import get_slope_intercept
 from seastats.stats import get_slope_intercept_pp
 from seastats.storms import match_extremes
 
+__all__ = [
+    "GENERAL_METRICS",
+    "GENERAL_METRICS_ALL",
+    "get_bias",
+    "get_corr",
+    "get_kge",
+    "get_lambda",
+    "get_mad",
+    "get_madc",
+    "get_madp",
+    "get_mae",
+    "get_mse",
+    "get_nse",
+    "get_rms",
+    "get_rmse",
+    "get_slope_intercept",
+    "get_slope_intercept_pp",
+    "get_stats",
+    "match_extremes",
+    "STORM_METRICS",
+    "STORM_METRICS_ALL",
+    "SUGGESTED_METRICS",
+    "SUPPORTED_METRICS",
+]
+
 logger = logging.getLogger(__name__)
 
 GENERAL_METRICS_ALL = [
