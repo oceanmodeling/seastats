@@ -6,6 +6,7 @@ from collections.abc import Sequence
 import numpy as np
 import pandas as pd
 
+from seastats.stats import align_ts
 from seastats.stats import get_bias
 from seastats.stats import get_corr
 from seastats.stats import get_kge
@@ -23,6 +24,7 @@ from seastats.stats import get_slope_intercept_pp
 from seastats.storms import match_extremes
 
 __all__ = [
+    "align_ts",
     "GENERAL_METRICS",
     "GENERAL_METRICS_ALL",
     "get_bias",
