@@ -1,3 +1,6 @@
+[![Available on pypi](https://img.shields.io/pypi/v/seastats.svg)](https://pypi.python.org/pypi/seastats/)
+[![CI](https://github.com/oceanmodeling/seastats/actions/workflows/run_tests.yml/badge.svg)](https://github.com/oceanmodeling/seastats/actions/workflows/run_tests.yml)
+
 # SeaStats
 
 `seastats` is a simple package to compare and analyse 2 time series. We use the following convention in this repo:
@@ -16,7 +19,20 @@ def get_stats(
     round: int = -1
 ) -> dict[str, float]
 ```
-Calculates various statistical metrics between the simulated and observed time series data.
+Which calculates various statistical metrics between the simulated and observed time series data.
+
+## Install
+
+### PiPy
+```
+pip install seastats
+```
+
+### Conda / Mamba
+```
+mamba install -c conda-forge seastats
+```
+
 ## Parameters:
  * **sim** (pd.Series). The simulated time series data.
  * **obs** (pd.Series). The observed time series data.
