@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.metadata
 import logging
 from collections.abc import Sequence
 
@@ -23,6 +24,7 @@ from seastats.stats import get_slope_intercept
 from seastats.stats import get_slope_intercept_pp
 from seastats.storms import match_extremes
 
+__version__ = importlib.metadata.version(__name__)
 __all__ = [
     "align_ts",
     "GENERAL_METRICS",
