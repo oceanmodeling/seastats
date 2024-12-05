@@ -18,6 +18,7 @@ from seastats.stats import get_madp
 from seastats.stats import get_mae
 from seastats.stats import get_mse
 from seastats.stats import get_nse
+from seastats.stats import get_percentiles
 from seastats.stats import get_rms
 from seastats.stats import get_rmse
 from seastats.stats import get_slope_intercept
@@ -39,6 +40,7 @@ __all__ = [
     "get_mae",
     "get_mse",
     "get_nse",
+    "get_percentiles",
     "get_rms",
     "get_rmse",
     "get_slope_intercept",
