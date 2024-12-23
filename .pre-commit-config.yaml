@@ -6,7 +6,7 @@ fail_fast: false
 
 repos:
   - repo: "https://github.com/pre-commit/pre-commit-hooks"
-    rev: "v4.5.0"
+    rev: "v5.0.0"
     hooks:
       - id: "check-added-large-files"
         args: ["--maxkb=40000"]
@@ -34,7 +34,7 @@ repos:
       - id: "python-use-type-annotations"
 
   - repo: "https://github.com/asottile/reorder_python_imports"
-    rev: "v3.12.0"
+    rev: "v3.14.0"
     hooks:
       - id: "reorder-python-imports"
         args:
@@ -42,18 +42,18 @@ repos:
 
   - repo: "https://github.com/astral-sh/ruff-pre-commit"
     # Ruff version.
-    rev: "v0.1.7"
+    rev: "v0.8.4"
     hooks:
       - id: "ruff"
       - id: "ruff-format"
 
   - repo: "https://github.com/kynan/nbstripout"
-    rev: "0.6.1"
+    rev: "0.8.1"
     hooks:
       - id: "nbstripout"
 
   - repo: "https://github.com/python-poetry/poetry"
-    rev: "1.7.0"
+    rev: "1.8.0"
     hooks:
       - id: "poetry-check"
         name: "poetry check"
