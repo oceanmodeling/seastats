@@ -1,4 +1,5 @@
 [![Available on pypi](https://img.shields.io/pypi/v/seastats.svg)](https://pypi.python.org/pypi/seastats/)
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/seastats.svg)](https://anaconda.org/conda-forge/seastats)
 [![CI](https://github.com/oceanmodeling/seastats/actions/workflows/run_tests.yml/badge.svg)](https://github.com/oceanmodeling/seastats/actions/workflows/run_tests.yml)
 
 # SeaStats
@@ -15,7 +16,7 @@ def get_stats(
     obs: Series,
     metrics: Sequence[str] = SUGGESTED_METRICS,
     quantile: float = 0,
-    cluster: int = 72,
+    cluster: int = 24,
     round: int = -1
 ) -> dict[str, float]
 ```
@@ -54,7 +55,7 @@ Returns a dictionary containing the calculated metrics and their corresponding v
   * `mae`: Mean Absolute Error
   * `mse`: Mean Square Error
   * `nse`: Nash-Sutcliffe Efficiency
-  * `lamba`: Lambda index
+  * `lambda`: Lambda index
   * `cr`: Pearson Correlation coefficient
   * `cr_95`: Pearson Correlation coefficient for data points above 95th percentile
   * `slope`: Slope of Model/Obs correlation
@@ -140,7 +141,7 @@ with:
 NB: the function uses [pyextremes](https://georgebv.github.io/pyextremes/quickstart/) in the background, with PoT method, using the `quantile` value of the observed signal as physical threshold and passes the `cluster_duration` argument.
 
 
-this happens when the function `storms/match_extremes.py` couldn't finc concomitent storms for the observed and modeled time series.
+this happens when the function `storms/match_extremes.py` couldn't find concomitent storms for the observed and modeled time series.
 
 ## Usage
 see [notebook](/notebooks/example_abed.ipynb) for details
@@ -153,6 +154,6 @@ storm = get_stats(sim, obs, quantile = 0.99, metrics = STORM_METRICS) # we use a
 pd.DataFrame(dict(general, **storm), index=['abed'])
 ```
 
-|      |   bias |   rmse |   rms |   rms_95 |   sim_mean |   obs_mean |   sim_std |   obs_std |   nse |   lamba |    cr |   cr_95 |   slope |   intercept |   slope_pp |   intercept_pp |   mad |   madp |   madc |   kge |       R1 |   R1_norm |       R3 |   R3_norm |     error |   error_norm |
+|      |   bias |   rmse |   rms |   rms_95 |   sim_mean |   obs_mean |   sim_std |   obs_std |   nse |  lambda |    cr |   cr_95 |   slope |   intercept |   slope_pp |   intercept_pp |   mad |   madp |   madc |   kge |       R1 |   R1_norm |       R3 |   R3_norm |     error |   error_norm |
 |:-----|-------:|-------:|------:|---------:|-----------:|-----------:|----------:|----------:|------:|--------:|------:|--------:|--------:|------------:|-----------:|---------------:|------:|-------:|-------:|------:|---------:|----------:|---------:|----------:|----------:|-------------:|
 | abed | -0.007 |  0.086 | 0.086 |    0.088 |         -0 |      0.007 |     0.142 |     0.144 | 0.677 |   0.929 | 0.817 |   0.542 |   0.718 |      -0.005 |      1.401 |         -0.028 | 0.052 |  0.213 |  0.265 |  0.81 | 0.237364 |  0.295719 | 0.147163 |  0.207019 | 0.0938142 |     0.177533 |

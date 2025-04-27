@@ -11,7 +11,7 @@ def match_extremes(
     sim: pd.Series[float],
     obs: pd.Series[float],
     quantile: float,
-    cluster: int = 72,
+    cluster: int = 24,
 ) -> pd.DataFrame:
     """
     Calculate metrics for comparing simulated and observed storm events.
@@ -36,8 +36,6 @@ def match_extremes(
     !Important: The modeled values are matched on the observed events calculated by POT analysis.
                 The user needs to be mindful about the order of the observed and modeled pd.Series.
     """
-    # resample observation to 1H time series
-    obs = obs.resample("1h").mean().shift(freq="30min")
     # get observed extremes
     ext = get_extremes(obs, "POT", threshold=obs.quantile(quantile), r=f"{cluster}h")
     ext_values_dict: dict[str, T.Any] = {}

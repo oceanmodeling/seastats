@@ -66,7 +66,7 @@ GENERAL_METRICS_ALL = [
     "sim_std",
     "obs_std",
     "nse",
-    "lamba",
+    "lambda",
     "cr",
     "slope",
     "intercept",
@@ -117,7 +117,7 @@ def get_stats(
     - `sim_std`: The standard deviation of the simulated time series data.
     - `obs_std`: The standard deviation of the observed time series data.
     - `nse`: The Nash-Sutcliffe efficiency between the simulated and observed time series data.
-    - `lamba`: The lambda statistic between the simulated and observed time series data.
+    - `lambda`: The lambda statistic between the simulated and observed time series data.
     - `cr`: The correlation coefficient between the simulated and observed time series data.
     - `slope`: The slope of the linear regression between the simulated and observed time series data.
     - `intercept`: The intercept of the linear regression between the simulated and observed time series data.
@@ -176,8 +176,8 @@ def get_stats(
                 stats["mse"] = get_mse(sim, obs)
             case "nse":
                 stats["nse"] = get_nse(sim, obs)
-            case "lamba":
-                stats["lamba"] = get_lambda(sim, obs)
+            case "lambda":
+                stats["lambda"] = get_lambda(sim, obs)
             case "cr":
                 stats["cr"] = get_corr(sim, obs)
             case "slope":
