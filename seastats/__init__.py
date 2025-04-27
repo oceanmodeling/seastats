@@ -85,7 +85,7 @@ SUGGESTED_METRICS = sorted(GENERAL_METRICS + STORM_METRICS)
 SUPPORTED_METRICS = sorted(GENERAL_METRICS_ALL + STORM_METRICS_ALL)
 
 
-def get_stats(
+def get_stats(  # noqa: C901
     sim: pd.Series[float],
     obs: pd.Series[float],
     metrics: Sequence[str] = SUGGESTED_METRICS,
