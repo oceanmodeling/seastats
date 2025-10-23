@@ -27,3 +27,10 @@ cov:
 		--durations=10 \
 		--cov=seastats \
 		--cov-report term-missing
+
+test_nb:
+	coverage erase
+	python -m pytest \
+		-vv \
+		--durations=10 \
+		--nbval notebooks \
