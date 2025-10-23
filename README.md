@@ -22,6 +22,22 @@ def get_stats(
 ```
 Which calculates various statistical metrics between the simulated and observed time series data.
 
+## Easy API - for both general and storm-specific metocean metrics
+
+get all metrics in a 3 liner:
+```python
+from seastats import get_stats, GENERAL_METRICS, STORM_METRICS
+general = get_stats(sim, obs, metrics = GENERAL_METRICS)
+storm = get_stats(sim, obs, quantile = 0.99, metrics = STORM_METRICS) # ! we use a different quantile for PoT selection
+pd.DataFrame(dict(general, **storm), index=['abed'])
+```
+this returns:
+
+| station |   bias |   rms |  rmse |    cr |   nse |  kge |       R1 |       R3 |     error |
+| :------ | -----: | ----: | ----: | ----: | ----: | ---: | -------: | -------: | --------: |
+| abed    | -0.007 | 0.086 | 0.086 | 0.817 | 0.677 | 0.81 | 0.237364 | 0.147163 | 0.0938142 |
+
+
 ## Install
 
 ### PiPy
@@ -66,13 +82,16 @@ Returns a dictionary containing the calculated metrics and their corresponding v
   * `madp`: Mean Absolute Deviation of percentiles
   * `madc`: `mad + madp`
   * `kge`: Kling–Gupta Efficiency
-* [The storm metrics](#storm-metrics): a PoT selection is done on the observed signal (using the `match_extremes()` function). Function returns the decreasing extreme event peak values for observed and modeled signals (and time lag between events). See details below.
+* [The storm metrics](#storm-metrics): a PoT selection is done on the observed signal (using the `match_extremes()` function). Function returns the decreasing extreme event peak values for observed and modeled signals (and time lag between events).
   * `R1`: Difference between observed and modelled for the biggest storm
-  * `R1_norm`: Normalized R1 (R1 divided by observed value)
-  * `R3`: Average difference between observed and modelled for the three biggest storms
-  * `R3_norm`: Normalized R3 (R3 divided by observed value)
-  * `error`: Average difference between observed and modelled for all storms
-  * `error_norm`: Normalized error (error divided by observed value)
+  * `R1_abs`: Absolute difference between observed and modelled for the biggest storm
+  * `R1_abs_norm`: Absolute normalized difference between observed and modelled for the biggest storm
+  * `R3`: Averaged difference between observed and modelled for the three biggest storms
+  * `R3_abs`: Averaged absolute difference between observed and modelled for the three biggest storms
+  * `R3_abs_norm`: Averaged normalised absolute difference between observed and modelled for the three biggest storms
+  * `error`: Averaged difference between modelled values and observed detected storms
+  * `abs_error`: Averaged absolute difference between modelled values and observed detected storms
+  * `abs_error_norm`: Averaged normalised absolute difference between modelled values and observed detected storms
 
 ## General metrics
 ### A. Dimensional Statistics:
@@ -98,23 +117,18 @@ with :
 $$\lambda = 1 - \frac{\sum{(x_c - x_m)^2}}{\sum{(x_m - \overline{x}_m)^2} + \sum{(x_c - \overline{x}_c)^2} + n(\overline{x}_m - \overline{x}_c)^2 + \kappa}$$
  * with `kappa` $$2 \cdot \left| \sum{((x_m - \overline{x}_m) \cdot (x_c - \overline{x}_c))} \right|$$
 
-## Storm metrics
-The functions uses the `match_extremes()` function (detailed below) and returns:
- * `R1`: the error for the biggest storm
- * `R3`: the mean error for the 3 biggest storms
- * `error`: the mean error for all the storms above the threshold.
- * `R1_norm`/`R3_norm`/`error`: Same methodology, but values are in normalised (in %) relatively to the observed peaks.
-
-
 ### case of NaNs
 The `storm_metrics()` might return:
 ```python
 {'R1': np.nan,
- 'R1_norm': np.nan,
+ 'R1_abs': np.nan,
+ 'R1_abs_norm': np.nan,
  'R3': np.nan,
- 'R3_norm': np.nan,
+ 'R3_abs': np.nan,
+ 'R3_abs_norm': np.nan,
  'error': np.nan,
- 'error_norm': np.nan}
+ 'abs_error': np.nan,
+ 'abs_error_norm': np.nan}
 ```
 ## Extreme events
 
@@ -126,7 +140,7 @@ extremes_df
 ```
 The modeled peaks are matched with the observed peaks. Function returns a pd.DataFrame of the decreasing observed storm peaks as follows:
 
-| time observed       |   observed | time observed       |    model | time model          |       diff |     error |   error_norm |   tdiff |
+| time observed       |   observed | time observed       |    model | time model          |       error |     abs_error |   abs_error_norm |   tdiff |
 |:--------------------|-----------:|:--------------------|---------:|:--------------------|-----------:|----------:|-------------:|--------:|
 | 2022-01-29 19:30:00 |   0.803 | 2022-01-29 19:30:00 | 0.565 | 2022-01-29 17:00:00 | -0.237  | 0.237  |    0.296  |    -2.5 |
 | 2022-02-20 20:30:00 |   0.639 | 2022-02-20 20:30:00 | 0.577 | 2022-02-20 20:00:00 | -0.062 | 0.062 |    0.0963 |    -0.5 |
@@ -145,15 +159,3 @@ this happens when the function `storms/match_extremes.py` couldn't find concomit
 
 ## Usage
 see [notebook](/notebooks/example_abed.ipynb) for details
-
-get all metrics in a 3 liner:
-```python
-from seastats import get_stats, GENERAL_METRICS_ALL, STORM_METRICS_ALL
-general = get_stats(sim, obs, metrics = GENERAL_METRICS)
-storm = get_stats(sim, obs, quantile = 0.99, metrics = STORM_METRICS) # we use a different quantile for PoT selection
-pd.DataFrame(dict(general, **storm), index=['abed'])
-```
-
-|      |   bias |   rmse |   rms |   rms_95 |   sim_mean |   obs_mean |   sim_std |   obs_std |   nse |  lambda |    cr |   cr_95 |   slope |   intercept |   slope_pp |   intercept_pp |   mad |   madp |   madc |   kge |       R1 |   R1_norm |       R3 |   R3_norm |     error |   error_norm |
-|:-----|-------:|-------:|------:|---------:|-----------:|-----------:|----------:|----------:|------:|--------:|------:|--------:|--------:|------------:|-----------:|---------------:|------:|-------:|-------:|------:|---------:|----------:|---------:|----------:|----------:|-------------:|
-| abed | -0.007 |  0.086 | 0.086 |    0.088 |         -0 |      0.007 |     0.142 |     0.144 | 0.677 |   0.929 | 0.817 |   0.542 |   0.718 |      -0.005 |      1.401 |         -0.028 | 0.052 |  0.213 |  0.265 |  0.81 | 0.237364 |  0.295719 | 0.147163 |  0.207019 | 0.0938142 |     0.177533 |
