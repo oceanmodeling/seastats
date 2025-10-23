@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -105,3 +106,14 @@ def test_get_stats_ensure_that_all_returns_supported_metrics(sim, obs):
     all_results = seastats.get_stats(sim, obs, metrics=["all"])
     supported_results = seastats.get_stats(sim, obs, metrics=seastats.SUPPORTED_METRICS)
     assert all_results == supported_results
+
+
+def test_get_stats_rounding_behavior(sim, obs):
+    stats_unrounded = seastats.get_stats(sim, obs, metrics=seastats.GENERAL_METRICS)
+    for round_ in range(5):
+        stats_rounded = seastats.get_stats(sim, obs, metrics=seastats.GENERAL_METRICS, round=round_)
+        for metric in seastats.GENERAL_METRICS:
+            unrounded_val = stats_unrounded[metric]
+            rounded_val = stats_rounded[metric]
+            if not np.isclose(unrounded_val, rounded_val):
+                assert rounded_val == pytest.approx(round(unrounded_val, round_))
