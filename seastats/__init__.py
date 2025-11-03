@@ -139,10 +139,10 @@ def get_stats(  # noqa: C901
     - `kge`: The Kling-Gupta efficiency between the simulated and observed time series data.
     - `R1`: Difference between observed and modelled for the biggest storm
     - `R1_abs`: Absolute R1 (R1 divided by observed value)
-    - `R1_abs_norm`: Absolute normalized R1 (R1 divided by observed max peak)
+    - `R1_abs_norm`: Absolute normalized R1 (R1_abs divided by observed max peak)
     - `R3`: Averaged difference between observed and modelled for the three biggest storms
     - `R3_abs`: Averaged absolute difference between observed and modelled for the three biggest storms
-    - `R3_abs_norm`: Normalized R3 (R3 divided by observed value)
+    - `R3_abs_norm`: Normalized absolute R3 (R3_abs divided by observed value)
     - `error`: Averaged difference between modelled values and observed detected storms
     - `abs_error`: Averaged absolute difference between modelled values and observed detected storms
     - `abs_error_norm`: Averaged normalised absolute difference between modelled values and observed detected storms

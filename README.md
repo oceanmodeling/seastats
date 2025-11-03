@@ -88,10 +88,10 @@ Returns a dictionary containing the calculated metrics and their corresponding v
   * `R1_abs_norm`: Absolute normalized difference between observed and modelled for the biggest storm
   * `R3`: Averaged difference between observed and modelled for the three biggest storms
   * `R3_abs`: Averaged absolute difference between observed and modelled for the three biggest storms
-  * `R3_abs_norm`: Averaged normalised absolute difference between observed and modelled for the three biggest storms
+  * `R3_abs_norm`: Average of the normalized absolute difference between observed and modelled for the three biggest storms
   * `error`: Averaged difference between modelled values and observed detected storms
   * `abs_error`: Averaged absolute difference between modelled values and observed detected storms
-  * `abs_error_norm`: Averaged normalised absolute difference between modelled values and observed detected storms
+  * `abs_error_norm`: Average of the normalized absolute difference between modelled values and observed detected storms
 
 ## General metrics
 ### A. Dimensional Statistics:

@@ -60,8 +60,8 @@ def match_extremes(
     df = df.dropna(subset="model")
     df = df.sort_values("observed", ascending=False)
     df["error"] = df["model"] - df["observed"]
-    df["abs_error"] = abs(df["error"])
-    df["abs_error_norm"] = abs(df["error"] / df["observed"])
+    df["abs_error"] = df["error"].abs()
+    df["abs_error_norm"] = df["abs_error"] / df["observed"].abs()
     df["tdiff"] = df["time model"] - df["time observed"]
     df["tdiff"] = df["tdiff"].apply(lambda x: x.total_seconds() / 3600)
     df = df.set_index("time observed")
