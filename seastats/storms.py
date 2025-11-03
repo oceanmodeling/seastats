@@ -28,9 +28,9 @@ def match_extremes(
            * `time observed`: observed extreme event time
            * `model`: modeled extreme event value
            * `time model`: modeled extreme event time
-           * `diff`: difference between model and observed
-           * `error`: absolute difference between model and observed
-           * `error_norm`: normalised difference between model and observed
+           * `error`: difference between model and observed
+           * `abs_error`: absolute difference between model and observed
+           * `abs_error_norm`: normalised absolute difference between model and observed
            * `tdiff`: time difference between model and observed (in hours)
 
     !Important: The modeled values are matched on the observed events calculated by POT analysis.
@@ -59,9 +59,9 @@ def match_extremes(
     df = pd.DataFrame(ext_values_dict)
     df = df.dropna(subset="model")
     df = df.sort_values("observed", ascending=False)
-    df["diff"] = df["model"] - df["observed"]
-    df["error"] = abs(df["diff"])
-    df["error_norm"] = abs(df["diff"] / df["observed"])
+    df["error"] = df["model"] - df["observed"]
+    df["abs_error"] = df["error"].abs()
+    df["abs_error_norm"] = df["abs_error"] / df["observed"].abs()
     df["tdiff"] = df["time model"] - df["time observed"]
     df["tdiff"] = df["tdiff"].apply(lambda x: x.total_seconds() / 3600)
     df = df.set_index("time observed")

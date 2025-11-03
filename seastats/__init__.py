@@ -79,7 +79,17 @@ GENERAL_METRICS_ALL = [
 ]
 GENERAL_METRICS = ["bias", "rms", "rmse", "cr", "nse", "kge"]
 STORM_METRICS = ["R1", "R3", "error"]
-STORM_METRICS_ALL = ["R1", "R1_norm", "R3", "R3_norm", "error", "error_norm"]
+STORM_METRICS_ALL = [
+    "R1",
+    "R1_abs",
+    "R1_abs_norm",
+    "R3",
+    "R3_abs",
+    "R3_abs_norm",
+    "error",
+    "abs_error",
+    "abs_error_norm",
+]
 
 SUGGESTED_METRICS = sorted(GENERAL_METRICS + STORM_METRICS)
 SUPPORTED_METRICS = sorted(GENERAL_METRICS_ALL + STORM_METRICS_ALL)
@@ -128,11 +138,14 @@ def get_stats(  # noqa: C901
     - `madc`: The median absolute deviation of the simulated time series data from its median, calculated by adding `mad` to `madp`
     - `kge`: The Kling-Gupta efficiency between the simulated and observed time series data.
     - `R1`: Difference between observed and modelled for the biggest storm
-    - `R1_norm`: Normalized R1 (R1 divided by observed value)
-    - `R3`: Average difference between observed and modelled for the three biggest storms
-    - `R3_norm`: Normalized R3 (R3 divided by observed value)
-    - `error`: Average difference between observed and modelled for all storms
-    - `error_norm`: Normalized error (error divided by observed value)
+    - `R1_abs`: Absolute R1 (R1 divided by observed value)
+    - `R1_abs_norm`: Absolute normalized R1 (R1_abs divided by observed max peak)
+    - `R3`: Averaged difference between observed and modelled for the three biggest storms
+    - `R3_abs`: Averaged absolute difference between observed and modelled for the three biggest storms
+    - `R3_abs_norm`: Normalized absolute R3 (R3_abs divided by observed value)
+    - `error`: Averaged difference between modelled values and observed detected storms
+    - `abs_error`: Averaged absolute difference between modelled values and observed detected storms
+    - `abs_error_norm`: Averaged normalised absolute difference between modelled values and observed detected storms
     """
     if not isinstance(metrics, list):
         raise ValueError("metrics must be a list")
@@ -198,16 +211,22 @@ def get_stats(  # noqa: C901
                 stats["kge"] = get_kge(sim, obs)
             case "R1":
                 stats["R1"] = extreme_df["error"].iloc[0]
-            case "R1_norm":
-                stats["R1_norm"] = extreme_df["error_norm"].iloc[0]
+            case "R1_abs":
+                stats["R1_abs"] = extreme_df["abs_error"].iloc[0]
+            case "R1_abs_norm":
+                stats["R1_abs_norm"] = extreme_df["abs_error_norm"].iloc[0]
             case "R3":
                 stats["R3"] = extreme_df["error"].iloc[0:3].mean()
-            case "R3_norm":
-                stats["R3_norm"] = extreme_df["error_norm"].iloc[0:3].mean()
+            case "R3_abs":
+                stats["R3_abs"] = extreme_df["abs_error"].iloc[0:3].mean()
+            case "R3_abs_norm":
+                stats["R3_abs_norm"] = extreme_df["abs_error_norm"].iloc[0:3].mean()
             case "error":
                 stats["error"] = extreme_df["error"].mean()
-            case "error_norm":
-                stats["error_norm"] = extreme_df["error_norm"].mean()
+            case "abs_error":
+                stats["abs_error"] = extreme_df["abs_error"].mean()
+            case "abs_error_norm":
+                stats["abs_error_norm"] = extreme_df["abs_error_norm"].mean()
 
     if round > 0:
         for metric in metrics:

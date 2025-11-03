@@ -54,3 +54,5 @@ jobs:
       - run: "mypy seastats"
       - name: "Run tests"
         run: "make cov"
+      - name: "Run notebook test"
+        run: "make test_nb"

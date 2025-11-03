@@ -88,7 +88,7 @@ def truncate_seconds(ts: pd.Series[float]) -> pd.Series[float]:
         msg = "Duplicate timestamps have been detected after the truncation of seconds. Keeping the first datapoint per minute"
         logger.warning(msg)
         df = df.iloc[df.time.drop_duplicates().index].reset_index(drop=True)
-    df.index = df.time  # type: ignore[assignment]
+    df.index = df.time
     df = df.drop("time", axis=1)
     ts = pd.Series(index=df.index, data=df.value)
     return ts
@@ -97,20 +97,17 @@ def truncate_seconds(ts: pd.Series[float]) -> pd.Series[float]:
 def align_ts(
     sim: pd.Series[float],
     obs: pd.Series[float],
-    resample_to_model: bool = True,
 ) -> tuple[pd.Series[float], pd.Series[float]]:
-    # requisite: obs is the observation time series
-    obs = obs.dropna()
-    obs = truncate_seconds(obs)
-    if resample_to_model:
-        freq = sim.index.to_series().diff().median()
-        obs = obs.resample(pd.Timedelta(freq)).mean()
-    sim_, obs_ = sim.align(obs, axis=0)
-    nan_mask1 = pd.isna(sim_)
-    nan_mask2 = pd.isna(obs_)
-    nan_mask = np.logical_or(nan_mask1, nan_mask2)
-    sim_ = sim_[~nan_mask]
-    obs_ = obs_[~nan_mask]
+    # observations is the reference and should not be changed
+    obs = pd.Series(obs, name="obs")
+    sim = pd.Series(sim, name="sim")
+    df = pd.merge(sim, obs, left_index=True, right_index=True, how="outer")
+    df["sim"] = df["sim"].interpolate(method="linear", limit_direction="both")
+    df = df.dropna(subset=["obs"])
+    sim_ = df["sim"]
+    # sim_ = sim_.drop_duplicates()
+    obs_ = df["obs"]
+    # obs_ = obs_.drop_duplicates()
     return sim_, obs_
 
 

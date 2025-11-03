@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -26,14 +27,17 @@ EXPECTED_000 = {
     "kge": 0.810,
 }
 EXPECTED_099 = {
-    "R1": 0.292,
-    "R1_norm": 0.340,
-    "R3": 0.187,
-    "R3_norm": 0.248,
+    "R1": -0.292,
+    "R1_abs": 0.292,
+    "R1_abs_norm": 0.340,
+    "R3": -0.187,
+    "R3_abs": 0.187,
+    "R3_abs_norm": 0.248,
     "bias": -0.028,
     "cr": 0.453,
-    "error": 0.111,
-    "error_norm": 0.195,
+    "error": -0.094,
+    "abs_error": 0.111,
+    "abs_error_norm": 0.195,
     "intercept": 0.433,
     "intercept_pp": 0.153,
     "kge": 0.250,
@@ -105,3 +109,14 @@ def test_get_stats_ensure_that_all_returns_supported_metrics(sim, obs):
     all_results = seastats.get_stats(sim, obs, metrics=["all"])
     supported_results = seastats.get_stats(sim, obs, metrics=seastats.SUPPORTED_METRICS)
     assert all_results == supported_results
+
+
+def test_get_stats_rounding_behavior(sim, obs):
+    stats_unrounded = seastats.get_stats(sim, obs, metrics=seastats.GENERAL_METRICS)
+    for round_ in range(5):
+        stats_rounded = seastats.get_stats(sim, obs, metrics=seastats.GENERAL_METRICS, round=round_)
+        for metric in seastats.GENERAL_METRICS:
+            unrounded_val = stats_unrounded[metric]
+            rounded_val = stats_rounded[metric]
+            if not np.isclose(unrounded_val, rounded_val):
+                assert rounded_val == pytest.approx(round(unrounded_val, round_))

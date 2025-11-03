@@ -38,6 +38,7 @@ mypy = "*"
 pytest = "*"
 pytest-cov = "*"
 pandas-stubs = "*"
+nbval = "*"
 
 [build-system]
 requires = ["poetry-core"]

@@ -60,9 +60,6 @@ repos:
       - id: "poetry-check"
         name: "poetry check --lock"
         args: ["--lock"]
-      - id: "poetry-lock"
-        name: "poetry lock --no-update"
-        args: ["--no-update"]
       - id: poetry-export
         args: ["-f", "requirements.txt", "-o", "requirements/requirements.txt"]
         verbose: true
