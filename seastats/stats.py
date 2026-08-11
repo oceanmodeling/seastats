@@ -47,6 +47,21 @@ def get_corr(sim: pd.Series[float], obs: pd.Series[float]) -> float:
     return float(sim.corr(obs))
 
 
+def get_vs(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    std_sim = sim.std()
+    std_obs = obs.std()
+    denominator = 0.5 * (std_sim**2 + std_obs**2)
+    if denominator == 0:
+        return float("nan")
+    return float((std_sim * std_obs) / denominator)
+
+
+def get_vd(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    std_sim = sim.std()
+    std_obs = obs.std()
+    return np.sign(std_sim - std_obs) * (1 - get_vs(sim, obs))
+
+
 def get_nse(sim: pd.Series[float], obs: pd.Series[float]) -> float:
     nse = 1 - np.nansum(np.subtract(obs, sim) ** 2) / np.nansum((obs - float(np.nanmean(obs))) ** 2)
     return float(nse)

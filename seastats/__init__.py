@@ -23,6 +23,8 @@ from seastats.stats import get_rms
 from seastats.stats import get_rmse
 from seastats.stats import get_slope_intercept
 from seastats.stats import get_slope_intercept_pp
+from seastats.stats import get_vd
+from seastats.stats import get_vs
 from seastats.storms import match_extremes
 
 __version__ = importlib.metadata.version(__name__)
@@ -46,6 +48,8 @@ __all__ = [
     "get_slope_intercept",
     "get_slope_intercept_pp",
     "get_stats",
+    "get_vd",
+    "get_vs",
     "match_extremes",
     "STORM_METRICS",
     "STORM_METRICS_ALL",
@@ -76,6 +80,8 @@ GENERAL_METRICS_ALL = [
     "madp",
     "madc",
     "kge",
+    "vs",
+    "vd",
 ]
 GENERAL_METRICS = ["bias", "rms", "rmse", "cr", "nse", "kge"]
 STORM_METRICS = ["R1", "R3", "error"]
@@ -137,6 +143,8 @@ def get_stats(  # noqa: C901
     - `madp`: The median absolute deviation of the simulated time series data from its median, calculated using the percentiles of the observed time series data.
     - `madc`: The median absolute deviation of the simulated time series data from its median, calculated by adding `mad` to `madp`
     - `kge`: The Kling-Gupta efficiency between the simulated and observed time series data.
+    - `vs`: Variance Similarity (Koh et al., 2012), unitless, ranges from 0 to 1 (1 = equal variances).
+    - `vd`: Variance Dissimilarity, the complement of `vs` (1 - vs), ranges from -1 to 1 (-1 = noisy obs & model flat, 0 = equal variances, 1 = noisy model & obs flat).
     - `R1`: Difference between observed and modelled for the biggest storm
     - `R1_abs`: Absolute R1 (R1 divided by observed value)
     - `R1_abs_norm`: Absolute normalized R1 (R1_abs divided by observed max peak)
@@ -209,6 +217,10 @@ def get_stats(  # noqa: C901
                 stats["madc"] = get_madc(sim, obs)
             case "kge":
                 stats["kge"] = get_kge(sim, obs)
+            case "vs":
+                stats["vs"] = get_vs(sim, obs)
+            case "vd":
+                stats["vd"] = get_vd(sim, obs)
             case "R1":
                 stats["R1"] = extreme_df["error"].iloc[0]
             case "R1_abs":
