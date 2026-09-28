@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "seastats"
-version = "0.1.1"
+version = "0.2.0"
 description = "package for metocean statistics"
 authors = [
   "tomsail <saillour.thomas@gmail.com>",
@@ -29,6 +29,7 @@ python = "^3.10"
 numpy = "*"
 pandas = {version = "*", extras = ["pyarrow", "performance"]}
 pyextremes = "*"
+deprecated = "*"
 
 [tool.poetry.group.dev.dependencies]
 covdefaults = "*"
@@ -39,6 +40,7 @@ pytest = "*"
 pytest-cov = "*"
 pandas-stubs = "*"
 nbval = "*"
+types-deprecated = "*"
 
 [build-system]
 requires = ["poetry-core"]

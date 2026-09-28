@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.metadata
 import logging
+import warnings
 from collections.abc import Sequence
 
 import numpy as np
@@ -9,6 +10,7 @@ import pandas as pd
 
 from seastats.stats import align_ts
 from seastats.stats import get_bias
+from seastats.stats import get_cc
 from seastats.stats import get_corr
 from seastats.stats import get_kge
 from seastats.stats import get_lambda
@@ -16,13 +18,18 @@ from seastats.stats import get_mad
 from seastats.stats import get_madc
 from seastats.stats import get_madp
 from seastats.stats import get_mae
+from seastats.stats import get_mb
 from seastats.stats import get_mse
 from seastats.stats import get_nse
 from seastats.stats import get_percentiles
 from seastats.stats import get_rms
+from seastats.stats import get_rmsd
 from seastats.stats import get_rmse
 from seastats.stats import get_slope_intercept
 from seastats.stats import get_slope_intercept_pp
+from seastats.stats import get_urmsd
+from seastats.stats import get_vd
+from seastats.stats import get_vs
 from seastats.storms import match_extremes
 
 __version__ = importlib.metadata.version(__name__)
@@ -31,6 +38,7 @@ __all__ = [
     "GENERAL_METRICS",
     "GENERAL_METRICS_ALL",
     "get_bias",
+    "get_cc",
     "get_corr",
     "get_kge",
     "get_lambda",
@@ -38,14 +46,19 @@ __all__ = [
     "get_madc",
     "get_madp",
     "get_mae",
+    "get_mb",
     "get_mse",
     "get_nse",
     "get_percentiles",
     "get_rms",
+    "get_rmsd",
     "get_rmse",
     "get_slope_intercept",
     "get_slope_intercept_pp",
     "get_stats",
+    "get_urmsd",
+    "get_vd",
+    "get_vs",
     "match_extremes",
     "STORM_METRICS",
     "STORM_METRICS_ALL",
@@ -55,19 +68,27 @@ __all__ = [
 
 logger = logging.getLogger(__name__)
 
+# Mapping from deprecated metric names to new names
+_DEPRECATED_METRIC_NAMES: dict[str, str] = {
+    "bias": "mb",
+    "rmse": "rmsd",
+    "rms": "urmsd",
+    "cr": "cc",
+}
+
 GENERAL_METRICS_ALL = [
-    "bias",
-    "rmse",
+    "mb",
+    "rmsd",
     "mae",
     "mse",
-    "rms",
+    "urmsd",
     "sim_mean",
     "obs_mean",
     "sim_std",
     "obs_std",
     "nse",
     "lambda",
-    "cr",
+    "cc",
     "slope",
     "intercept",
     "slope_pp",
@@ -76,8 +97,10 @@ GENERAL_METRICS_ALL = [
     "madp",
     "madc",
     "kge",
+    "vs",
+    "vd",
 ]
-GENERAL_METRICS = ["bias", "rms", "rmse", "cr", "nse", "kge"]
+GENERAL_METRICS = ["mb", "urmsd", "rmsd", "cc", "nse", "kge", "vs", "vd"]
 STORM_METRICS = ["R1", "R3", "error"]
 STORM_METRICS_ALL = [
     "R1",
@@ -117,18 +140,18 @@ def get_stats(  # noqa: C901
 
     The dictionary contains the following keys and their corresponding values:
 
-    - `bias`: The bias between the simulated and observed time series data.
-    - `rmse`: The Root Mean Square Error between the simulated and observed time series data.
+    - `mb`: Mean Bias between the simulated and observed time series data.
+    - `rmsd`: Root Mean Square Difference between the simulated and observed time series data.
     - `mae`: The Mean Absolute Error the simulated and observed time series data.
     - `mse`: The Mean Square Error the simulated and observed time series data.
-    - `rms`: The raw mean square error between the simulated and observed time series data.
+    - `urmsd`: Unbiased Root Mean Square Difference (centered RMSD) between the simulated and observed time series data.
     - `sim_mean`: The mean of the simulated time series data.
     - `obs_mean`: The mean of the observed time series data.
     - `sim_std`: The standard deviation of the simulated time series data.
     - `obs_std`: The standard deviation of the observed time series data.
     - `nse`: The Nash-Sutcliffe efficiency between the simulated and observed time series data.
     - `lambda`: The lambda statistic between the simulated and observed time series data.
-    - `cr`: The correlation coefficient between the simulated and observed time series data.
+    - `cc`: Pearson Correlation Coefficient between the simulated and observed time series data.
     - `slope`: The slope of the linear regression between the simulated and observed time series data.
     - `intercept`: The intercept of the linear regression between the simulated and observed time series data.
     - `slope_pp`: The slope of the linear regression between the percentiles of the simulated and observed time series data.
@@ -137,6 +160,8 @@ def get_stats(  # noqa: C901
     - `madp`: The median absolute deviation of the simulated time series data from its median, calculated using the percentiles of the observed time series data.
     - `madc`: The median absolute deviation of the simulated time series data from its median, calculated by adding `mad` to `madp`
     - `kge`: The Kling-Gupta efficiency between the simulated and observed time series data.
+    - `vs`: Variance Similarity (Koh et al., 2012), unitless, ranges from 0 to 1 (1 = equal variances).
+    - `vd`: Variance Dissimilarity, 0 = equal variances, positive for var(M)>var(O), negative for var(M)<var(O), range from -1 (limit of 0 model var or inf obs var) to +1 (limit of inf model var or 0 obs var)".
     - `R1`: Difference between observed and modelled for the biggest storm
     - `R1_abs`: Absolute R1 (R1 divided by observed value)
     - `R1_abs_norm`: Absolute normalized R1 (R1_abs divided by observed max peak)
@@ -146,12 +171,31 @@ def get_stats(  # noqa: C901
     - `error`: Averaged difference between modelled values and observed detected storms
     - `abs_error`: Averaged absolute difference between modelled values and observed detected storms
     - `abs_error_norm`: Averaged normalised absolute difference between modelled values and observed detected storms
+
+    .. deprecated::
+        The metric names ``bias``, ``rmse``, ``rms``, and ``cr`` are deprecated.
+        Use ``mb``, ``rmsd``, ``urmsd``, and ``cc`` instead.
     """
     if not isinstance(metrics, list):
         raise ValueError("metrics must be a list")
 
     if metrics == ["all"]:
         metrics = SUPPORTED_METRICS
+
+    # Handle deprecated metric names
+    resolved_metrics: list[str] = []
+    for m in metrics:
+        if m in _DEPRECATED_METRIC_NAMES:
+            new_name = _DEPRECATED_METRIC_NAMES[m]
+            warnings.warn(
+                f"Metric name '{m}' is deprecated, use '{new_name}' instead",
+                FutureWarning,
+                stacklevel=2,
+            )
+            resolved_metrics.append(new_name)
+        else:
+            resolved_metrics.append(m)
+    metrics = resolved_metrics
 
     if not np.any([m in SUPPORTED_METRICS for m in metrics]):
         raise ValueError("metrics must be a list of supported variables in SUPPORTED_METRICS or ['all']")
@@ -169,12 +213,12 @@ def get_stats(  # noqa: C901
     stats = {}
     for metric in metrics:
         match metric:
-            case "bias":
-                stats["bias"] = get_bias(sim, obs)
-            case "rmse":
-                stats["rmse"] = get_rmse(sim, obs)
-            case "rms":
-                stats["rms"] = get_rms(sim, obs)
+            case "mb":
+                stats["mb"] = get_mb(sim, obs)
+            case "rmsd":
+                stats["rmsd"] = get_rmsd(sim, obs)
+            case "urmsd":
+                stats["urmsd"] = get_urmsd(sim, obs)
             case "sim_mean":
                 stats["sim_mean"] = sim.mean()
             case "obs_mean":
@@ -191,8 +235,8 @@ def get_stats(  # noqa: C901
                 stats["nse"] = get_nse(sim, obs)
             case "lambda":
                 stats["lambda"] = get_lambda(sim, obs)
-            case "cr":
-                stats["cr"] = get_corr(sim, obs)
+            case "cc":
+                stats["cc"] = get_cc(sim, obs)
             case "slope":
                 stats["slope"], _ = get_slope_intercept(sim, obs)
             case "intercept":
@@ -209,6 +253,10 @@ def get_stats(  # noqa: C901
                 stats["madc"] = get_madc(sim, obs)
             case "kge":
                 stats["kge"] = get_kge(sim, obs)
+            case "vs":
+                stats["vs"] = get_vs(sim, obs)
+            case "vd":
+                stats["vd"] = get_vd(sim, obs)
             case "R1":
                 stats["R1"] = extreme_df["error"].iloc[0]
             case "R1_abs":

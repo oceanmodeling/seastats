@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -5,18 +7,18 @@ import pytest
 import seastats
 
 EXPECTED_000 = {
-    "bias": 0.007,
-    "rmse": 0.086,
+    "mb": 0.007,
+    "rmsd": 0.086,
     "mae": 0.068,
     "mse": 0.007,
-    "rms": 0.086,
+    "urmsd": 0.086,
     "sim_mean": 0.007,
     "obs_mean": -0.000,
     "sim_std": 0.144,
     "obs_std": 0.142,
     "nse": 0.908,
     "lambda": 0.929,
-    "cr": 0.817,
+    "cc": 0.817,
     "slope": 0.204,
     "intercept": 0.007,
     "slope_pp": 0.336,
@@ -25,6 +27,8 @@ EXPECTED_000 = {
     "madp": 0.213,
     "madc": 0.266,
     "kge": 0.810,
+    "vs": 1.000,
+    "vd": 0.000,
 }
 EXPECTED_099 = {
     "R1": -0.292,
@@ -33,8 +37,8 @@ EXPECTED_099 = {
     "R3": -0.187,
     "R3_abs": 0.187,
     "R3_abs_norm": 0.248,
-    "bias": -0.028,
-    "cr": 0.453,
+    "mb": -0.028,
+    "cc": 0.453,
     "error": -0.094,
     "abs_error": 0.111,
     "abs_error_norm": 0.195,
@@ -50,12 +54,14 @@ EXPECTED_099 = {
     "nse": 0.822,
     "obs_mean": 0.482,
     "obs_std": 0.087,
-    "rms": 0.093,
-    "rmse": 0.104,
+    "urmsd": 0.093,
+    "rmsd": 0.104,
     "sim_mean": 0.454,
     "sim_std": 0.053,
     "slope": 0.043,
     "slope_pp": 0.626,
+    "vs": 0.884,
+    "vd": -0.116,
 }
 
 
@@ -120,3 +126,50 @@ def test_get_stats_rounding_behavior(sim, obs):
             rounded_val = stats_rounded[metric]
             if not np.isclose(unrounded_val, rounded_val):
                 assert rounded_val == pytest.approx(round(unrounded_val, round_))
+
+
+def test_deprecated_metric_names_in_get_stats(sim, obs):
+    """Old metric names (bias, rmse, rms, cr) should still work but emit FutureWarning."""
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        stats = seastats.get_stats(sim, obs, metrics=["bias", "rmse", "rms", "cr"])
+    # Should have emitted 4 FutureWarnings
+    future_warnings = [x for x in w if issubclass(x.category, FutureWarning)]
+    assert len(future_warnings) == 4
+    # Results should use the new names
+    assert "mb" in stats
+    assert "rmsd" in stats
+    assert "urmsd" in stats
+    assert "cc" in stats
+
+
+def test_deprecated_function_get_bias(sim, obs):
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = seastats.get_bias(sim, obs)
+    assert len([x for x in w if issubclass(x.category, DeprecationWarning)]) == 1
+    assert result == pytest.approx(seastats.get_mb(sim, obs))
+
+
+def test_deprecated_function_get_rmse(sim, obs):
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = seastats.get_rmse(sim, obs)
+    assert len([x for x in w if issubclass(x.category, DeprecationWarning)]) == 1
+    assert result == pytest.approx(seastats.get_rmsd(sim, obs))
+
+
+def test_deprecated_function_get_rms(sim, obs):
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = seastats.get_rms(sim, obs)
+    assert len([x for x in w if issubclass(x.category, DeprecationWarning)]) == 1
+    assert result == pytest.approx(seastats.get_urmsd(sim, obs))
+
+
+def test_deprecated_function_get_corr(sim, obs):
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        result = seastats.get_corr(sim, obs)
+    assert len([x for x in w if issubclass(x.category, DeprecationWarning)]) == 1
+    assert result == pytest.approx(seastats.get_cc(sim, obs))

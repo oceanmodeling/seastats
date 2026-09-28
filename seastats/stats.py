@@ -4,20 +4,33 @@ import logging
 
 import numpy as np
 import pandas as pd
+from deprecated import deprecated
 
 logger = logging.getLogger(__name__)
 
 
-def get_bias(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+def get_mb(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    """Mean Bias (MB)."""
     return float(sim.mean() - obs.mean())
+
+
+@deprecated(version="0.2.0", reason="Use get_mb() instead")
+def get_bias(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    return get_mb(sim, obs)
 
 
 def get_mse(sim: pd.Series[float], obs: pd.Series[float]) -> float:
     return float(np.square(np.subtract(obs, sim)).mean())
 
 
-def get_rmse(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+def get_rmsd(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    """Root Mean Square Difference (RMSD)."""
     return float(np.sqrt(get_mse(sim, obs)))
+
+
+@deprecated(version="0.2.0", reason="Use get_rmsd() instead")
+def get_rmse(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    return get_rmsd(sim, obs)
 
 
 def get_mae(sim: pd.Series[float], obs: pd.Series[float]) -> float:
@@ -38,13 +51,40 @@ def get_madc(sim: pd.Series[float], obs: pd.Series[float]) -> float:
     return get_mad(sim, obs) + madp
 
 
-def get_rms(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+def get_urmsd(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    """Unbiased Root Mean Square Difference (URMSD), also known as centered RMSD."""
     crmsd = ((sim - sim.mean()) - (obs - obs.mean())) ** 2
     return float(np.sqrt(crmsd.mean()))
 
 
-def get_corr(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+@deprecated(version="0.2.0", reason="Use get_urmsd() instead")
+def get_rms(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    return get_urmsd(sim, obs)
+
+
+def get_cc(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    """Pearson Correlation Coefficient (CC)."""
     return float(sim.corr(obs))
+
+
+@deprecated(version="0.2.0", reason="Use get_cc() instead")
+def get_corr(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    return get_cc(sim, obs)
+
+
+def get_vs(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    std_sim = sim.std()
+    std_obs = obs.std()
+    denominator = 0.5 * (std_sim**2 + std_obs**2)
+    if denominator == 0:
+        return float("nan")
+    return float((std_sim * std_obs) / denominator)
+
+
+def get_vd(sim: pd.Series[float], obs: pd.Series[float]) -> float:
+    std_sim = sim.std()
+    std_obs = obs.std()
+    return float(np.sign(std_sim - std_obs) * (1 - get_vs(sim, obs)))
 
 
 def get_nse(sim: pd.Series[float], obs: pd.Series[float]) -> float:
@@ -56,7 +96,7 @@ def get_lambda(sim: pd.Series[float], obs: pd.Series[float]) -> float:
     Xmean = float(np.nanmean(obs))
     Ymean = float(np.nanmean(sim))
     nObs = len(obs)
-    corr = get_corr(sim, obs)
+    corr = get_cc(sim, obs)
     if corr >= 0:
         kappa = 0
     else:
@@ -74,7 +114,7 @@ def get_lambda(sim: pd.Series[float], obs: pd.Series[float]) -> float:
 
 
 def get_kge(sim: pd.Series[float], obs: pd.Series[float]) -> float:
-    corr = get_corr(sim, obs)
+    corr = get_cc(sim, obs)
     b = (sim.mean() - obs.mean()) / obs.std()
     g = sim.std() / obs.std()
     return float(1 - np.sqrt((corr - 1) ** 2 + b**2 + (g - 1) ** 2))
