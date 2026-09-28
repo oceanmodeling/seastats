@@ -161,7 +161,7 @@ def get_stats(  # noqa: C901
     - `madc`: The median absolute deviation of the simulated time series data from its median, calculated by adding `mad` to `madp`
     - `kge`: The Kling-Gupta efficiency between the simulated and observed time series data.
     - `vs`: Variance Similarity (Koh et al., 2012), unitless, ranges from 0 to 1 (1 = equal variances).
-    - `vd`: Variance Dissimilarity, the complement of `vs` (1 - vs), ranges from -1 to 1 (-1 = noisy obs & model flat, 0 = equal variances, 1 = noisy model & obs flat).
+    - `vd`: Variance Dissimilarity, 0 = equal variances, positive for var(M)>var(O), negative for var(M)<var(O), range from -1 (limit of 0 model var or inf obs var) to +1 (limit of inf model var or 0 obs var)".
     - `R1`: Difference between observed and modelled for the biggest storm
     - `R1_abs`: Absolute R1 (R1 divided by observed value)
     - `R1_abs_norm`: Absolute normalized R1 (R1_abs divided by observed max peak)

@@ -83,7 +83,7 @@ Returns a dictionary containing the calculated metrics and their corresponding v
   * `madc`: `mad + madp`
   * `kge`: Kling–Gupta Efficiency
   * `vs`: Variance Similarity (Koh et al., 2012), unitless, ranges from 0 to 1 (1 = equal variances)
-  * `vd`: Variance Dissimilarity, complement of `vs` (`1 - vs`), ranges from -1 to 1 (-1 = noisy obs & model flat, 0 = equal variances, 1 = noisy model & obs flat)
+  * `vd`: Variance Dissimilarity, 0 = equal variances, positive for var(M)>var(O), negative for var(M)<var(O), range from -1 (limit of 0 model var or inf obs var) to +1 (limit of inf model var or 0 obs var)
 * [The storm metrics](#storm-metrics): a PoT selection is done on the observed signal (using the `match_extremes()` function). Function returns the decreasing extreme event peak values for observed and modeled signals (and time lag between events).
   * `R1`: Difference between observed and modelled for the biggest storm
   * `R1_abs`: Absolute difference between observed and modelled for the biggest storm
