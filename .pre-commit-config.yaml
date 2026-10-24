@@ -1,5 +1,6 @@
 ci:
   autofix_prs: false
+  skip: [poetry-lock]
 default_language_version:
   python: "python3"
 fail_fast: false
@@ -60,6 +61,9 @@ repos:
       - id: "poetry-check"
         name: "poetry check --lock"
         args: ["--lock"]
+      - id: poetry-lock
+        args: []
+        pass_filenames: false
       - id: poetry-export
         args: ["-f", "requirements.txt", "-o", "requirements/requirements.txt"]
         verbose: true

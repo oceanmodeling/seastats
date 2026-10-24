@@ -17,8 +17,8 @@ mypy:
 	dmypy run seastats
 
 deps:
-	pre-commit run poetry-lock -a
-	pre-commit run poetry-export -a
+	poetry lock
+	-pre-commit run poetry-export -a
 
 cov:
 	coverage erase
