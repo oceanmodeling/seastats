@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "seastats"
-version = "0.2.1"
+version = "0.2.2"
 description = "package for metocean statistics"
 authors = [
   "tomsail <saillour.thomas@gmail.com>",
@@ -37,6 +37,8 @@ hvplot = "*"
 ipykernel = "*"
 mypy = "*"
 pillow = ">=13.0.0"
+certifi = ">=2026.10.19"
+urllib3 = ">=2.6.3"
 pytest = "*"
 pytest-cov = "*"
 pandas-stubs = "*"
